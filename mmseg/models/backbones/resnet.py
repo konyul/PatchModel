@@ -386,6 +386,7 @@ class ResNet(BaseModule):
     """
 
     arch_settings = {
+        10: (BasicBlock, (1, 1, 1, 1)),
         18: (BasicBlock, (2, 2, 2, 2)),
         34: (BasicBlock, (3, 4, 6, 3)),
         50: (Bottleneck, (3, 4, 6, 3)),
@@ -454,7 +455,7 @@ class ResNet(BaseModule):
                             override=dict(name='norm3'))
         else:
             raise TypeError('pretrained must be a str or None')
-
+        
         self.depth = depth
         self.stem_channels = stem_channels
         self.base_channels = base_channels

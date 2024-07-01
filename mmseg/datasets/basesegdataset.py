@@ -169,7 +169,6 @@ class BaseSegDataset(BaseDataset):
         old_classes = cls.METAINFO.get('classes', None)
         if (new_classes is not None and old_classes is not None
                 and list(new_classes) != list(old_classes)):
-
             label_map = {}
             if not set(new_classes).issubset(cls.METAINFO['classes']):
                 raise ValueError(

@@ -130,7 +130,6 @@ class IoUMetric(BaseMetric):
             total_area_label, self.metrics, self.nan_to_num, self.beta)
 
         class_names = self.dataset_meta['classes']
-
         # summary table
         ret_metrics_summary = OrderedDict({
             ret_metric: np.round(np.nanmean(ret_metric_value) * 100, 2)

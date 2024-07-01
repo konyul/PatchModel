@@ -1,0 +1,1 @@
+{"base_lr": 1.9613655770513682e-06, "lr": 1.9613655770513682e-06, "data_time": 0.04713742733001709, "loss": NaN, "decode.loss_corruption": NaN, "decode.loss_ce": NaN, "time": 0.07089128494262695, "iter": 50, "memory": 2602, "step": 50}

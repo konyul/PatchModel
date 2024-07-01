@@ -17,7 +17,10 @@ try:
     from osgeo import gdal
 except ImportError:
     gdal = None
-
+import shutil
+import json
+import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 
 @TRANSFORMS.register_module()
 class LoadAnnotations(MMCV_LoadAnnotations):
@@ -86,7 +89,36 @@ class LoadAnnotations(MMCV_LoadAnnotations):
                           'set `reduce_zero_label=True` when dataset '
                           'initialized')
         self.imdecode_backend = imdecode_backend
+    def viz_seg(self, arr):
 
+        # 색상 맵 정의
+        cmap_binary = mcolors.ListedColormap(['white', 'blue'])
+        cmap_custom = mcolors.ListedColormap(['white', 'blue', 'black'])
+
+        # 서브플롯 생성
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
+
+        # [0, :, :] 시각화
+        ax1.imshow(arr[0], cmap=cmap_binary, vmin=0, vmax=1)
+        ax1.set_title('[0, :, :]')
+        ax1.axis('off')
+
+        # [1, :, :] 시각화
+        ax2.imshow(arr[1], cmap=cmap_custom, vmin=0, vmax=2)
+        ax2.set_title('[1, :, :]')
+        ax2.axis('off')
+
+        # 색상바 추가
+        cbar1 = fig.colorbar(plt.cm.ScalarMappable(cmap=cmap_binary), ax=ax1, ticks=[0, 1], orientation='horizontal')
+        cbar1.set_ticklabels(['White (0)', 'Blue (1)'])
+
+        cbar2 = fig.colorbar(plt.cm.ScalarMappable(cmap=cmap_custom), ax=ax2, ticks=[0, 1, 2], orientation='horizontal')
+        cbar2.set_ticklabels(['White (0)', 'Blue (1)', 'Black (2)'])
+
+        plt.tight_layout()
+
+        # 파일로 저장
+        plt.savefig('visualization.png', dpi=300)
     def _load_seg_map(self, results: dict) -> None:
         """Private function to load semantic segmentation annotations.
 
@@ -97,11 +129,20 @@ class LoadAnnotations(MMCV_LoadAnnotations):
             dict: The dict contains loaded semantic segmentation annotations.
         """
 
-        img_bytes = fileio.get(
-            results['seg_map_path'], backend_args=self.backend_args)
-        gt_semantic_seg = mmcv.imfrombytes(
-            img_bytes, flag='unchanged',
-            backend=self.imdecode_backend).squeeze().astype(np.uint8)
+        if results['seg_map_path'][-4:] != 'json':
+            img_bytes = fileio.get(
+                results['seg_map_path'], backend_args=self.backend_args)
+            gt_semantic_seg = mmcv.imfrombytes(
+                img_bytes, flag='unchanged',
+                backend=self.imdecode_backend).squeeze().astype(np.uint8)
+        else:
+            with open(results['seg_map_path'], "r") as file:
+                json_data = json.load(file)
+            gt_semantic_seg = np.transpose(json_data['patch'],(2,0,1))
+            # self.viz_seg(gt_semantic_seg)
+            gt_semantic_seg[0][gt_semantic_seg[0] != 0] -= 1
+            gt_semantic_seg = gt_semantic_seg[0] + gt_semantic_seg[1]
+            
 
         # reduce zero_label
         if self.reduce_zero_label is None:
@@ -125,6 +166,8 @@ class LoadAnnotations(MMCV_LoadAnnotations):
                 gt_semantic_seg[gt_semantic_seg_copy == old_id] = new_id
         results['gt_seg_map'] = gt_semantic_seg
         results['seg_fields'].append('gt_seg_map')
+        # shutil.copy(results['img_path'],'max_imgs.jpg')
+        # self.viz_seg(gt_semantic_seg)
 
     def __repr__(self) -> str:
         repr_str = self.__class__.__name__

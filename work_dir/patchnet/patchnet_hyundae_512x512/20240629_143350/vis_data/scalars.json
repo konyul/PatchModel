@@ -1,0 +1,5 @@
+{"base_lr": 1.9613655770513682e-06, "lr": 1.9613655770513682e-06, "data_time": 0.08922948837280273, "loss": NaN, "decode.loss_corruption": NaN, "decode.loss_ce": 0.0, "time": 0.13114402294158936, "iter": 50, "memory": 9451, "step": 50}
+{"base_lr": 3.962697798532355e-06, "lr": 3.962697798532355e-06, "data_time": 0.07184512615203857, "loss": NaN, "decode.loss_corruption": NaN, "decode.loss_ce": 0.0, "time": 0.11315321922302246, "iter": 100, "memory": 1122, "step": 100}
+{"base_lr": 5.964030020013346e-06, "lr": 5.964030020013346e-06, "data_time": 0.08460254669189453, "loss": NaN, "decode.loss_corruption": NaN, "decode.loss_ce": 0.0, "time": 0.12268557548522949, "iter": 150, "memory": 1122, "step": 150}
+{"base_lr": 7.965362241494336e-06, "lr": 7.965362241494336e-06, "data_time": 0.0745391607284546, "loss": NaN, "decode.loss_corruption": NaN, "decode.loss_ce": 0.0, "time": 0.11229944229125977, "iter": 200, "memory": 1122, "step": 200}
+{"base_lr": 9.96669446297533e-06, "lr": 9.96669446297533e-06, "data_time": 0.09469373226165771, "loss": NaN, "decode.loss_corruption": NaN, "decode.loss_ce": 0.0, "time": 0.13378725051879883, "iter": 250, "memory": 1122, "step": 250}
