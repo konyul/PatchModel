@@ -121,6 +121,7 @@ class Patch_EncoderDecoder(BaseSegmentor):
     def extract_feat(self, inputs: Tensor) -> List[Tensor]:
         """Extract features from images."""
         x = self.backbone(inputs)
+        
         if self.with_neck:
             x = self.neck(x)
         return x

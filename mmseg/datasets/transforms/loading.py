@@ -131,7 +131,7 @@ class LoadAnnotations(MMCV_LoadAnnotations):
 
         if results['seg_map_path'][-4:] != 'json':
             img_bytes = fileio.get(
-                results['seg_map_path'], backend_args=self.backend_args)
+                results['seg_map_path'], backend_args=self.backend_args)    
             gt_semantic_seg = mmcv.imfrombytes(
                 img_bytes, flag='unchanged',
                 backend=self.imdecode_backend).squeeze().astype(np.uint8)

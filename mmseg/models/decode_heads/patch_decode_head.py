@@ -352,7 +352,6 @@ class patch_BaseDecodeHead(BaseModule, metaclass=ABCMeta):
             gt_label = torch.stack((torch.div(gt_label, 4, rounding_mode='floor'), torch.remainder(gt_label, 4)), dim=0)
             gt_labels.append(gt_label)
         gt_labels = torch.stack(gt_labels, dim=0)
-        breakpoint()
         gt_labels = self._stack_batch_gt(batch_data_samples)
         #16x16x2로 임시 reshape
         """
@@ -373,7 +372,6 @@ class patch_BaseDecodeHead(BaseModule, metaclass=ABCMeta):
             prepare_for_seg_label = gt_labels.clone()
             prepare_for_seg_label[prepare_for_seg_label != 0] += 1
             seg_label = torch.div(prepare_for_seg_label, 2, rounding_mode='trunc')
-
             prepare_for_corruption_label = seg_label.clone()
             prepare_for_corruption_label[prepare_for_corruption_label != 0] -= 1
             corruption_label = gt_labels - prepare_for_corruption_label*2
