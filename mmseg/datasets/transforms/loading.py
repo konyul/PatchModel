@@ -89,6 +89,7 @@ class LoadAnnotations(MMCV_LoadAnnotations):
                           'set `reduce_zero_label=True` when dataset '
                           'initialized')
         self.imdecode_backend = imdecode_backend
+
     def viz_seg(self, arr):
 
         # 색상 맵 정의
@@ -119,6 +120,7 @@ class LoadAnnotations(MMCV_LoadAnnotations):
 
         # 파일로 저장
         plt.savefig('visualization.png', dpi=300)
+        
     def _load_seg_map(self, results: dict) -> None:
         """Private function to load semantic segmentation annotations.
 

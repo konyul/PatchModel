@@ -1,3 +1,0 @@
-{"base_lr": 1.9613655770513682e-06, "lr": 1.9613655770513682e-06, "data_time": 0.002755141258239746, "loss": NaN, "decode.loss_corruption": NaN, "decode.loss_ce": 0.0, "time": 0.041840982437133786, "iter": 50, "memory": 9451, "step": 50}
-{"base_lr": 3.962697798532355e-06, "lr": 3.962697798532355e-06, "data_time": 0.002277565002441406, "loss": NaN, "decode.loss_corruption": NaN, "decode.loss_ce": 0.0, "time": 0.04042770862579346, "iter": 100, "memory": 1122, "step": 100}
-{"base_lr": 5.964030020013346e-06, "lr": 5.964030020013346e-06, "data_time": 0.002296590805053711, "loss": NaN, "decode.loss_corruption": NaN, "decode.loss_ce": 0.0, "time": 0.04016458988189697, "iter": 150, "memory": 1122, "step": 150}
