@@ -27,6 +27,24 @@ cd PatchModel
 pip install -v -e.
 ```
 
+데이터 생성
+
+```
+mkdir -p data/hyundae
+```
+
+폴더 구조
+
+```bash
+data/hyundae
+|— img_dir
+|    |— train
+|    |— val
+|— ann_dir 
+|    |— train
+|    |— val
+```
+
 훈련 모델 실행 (예시)
 
 ```
