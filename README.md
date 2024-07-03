@@ -20,6 +20,12 @@ docker container 생성
 docker run -it --gpus all --shm-size=8g -v ${오염 데이터 경로}:${원하는 경로} -w ${디렉토리 경로} --name ${container 명} kyparkk/mmsegmentation:latest /bin/bash
 ```
 
+docker container 접속
+
+```
+docker exec -it ${컨테이너명} /bin/bash
+```
+
 다음 명령어 입력
 
 ```
