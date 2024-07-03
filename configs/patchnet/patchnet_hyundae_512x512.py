@@ -37,6 +37,6 @@ param_scheduler = [
     )
 ]
 
-train_dataloader = dict(batch_size=4, num_workers=6)
+train_dataloader = dict(batch_size=1, num_workers=0)
 val_dataloader = dict(batch_size=1, num_workers=6)
 test_dataloader = val_dataloader

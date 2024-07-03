@@ -119,3 +119,6 @@ mmseg/.mim
 # Pytorch
 *.pth
 work_dir
+*.png
+*.py
+*.txt
