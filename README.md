@@ -4,7 +4,8 @@
 
 directory 생성
 ```
-cd ./directory
+mkdir $[디렉토리명}
+cd $[디렉토리명}
 git clone https://github.com/konyul/PatchModel.git
 ```
 docker image 생성
