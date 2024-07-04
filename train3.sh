@@ -1,5 +1,5 @@
 # CONFIG=patchnet_r10_1xb4_cityscapes-512x512
-CONFIG=patchnet_hyundae_512x512_wo_aug_lr5e-5_bs4_iter80k
+CONFIG=patchnet_hyundae_resnet18_512x512_wo_aug_lr5e-5_bs4_iter80k
 CONFIG_PATH=patchnet
 
 

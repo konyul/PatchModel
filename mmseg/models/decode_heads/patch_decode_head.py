@@ -343,6 +343,15 @@ class patch_BaseDecodeHead(BaseModule, metaclass=ABCMeta):
         Returns:
             dict[str, Tensor]: a dictionary of loss components
         """
+        #########
+        #ky
+        #########
+        gt_labels = []
+        for data_samples in batch_data_samples:
+            gt_label = data_samples.gt_sem_seg.data.squeeze(0)
+            gt_label = torch.stack((torch.div(gt_label, 4, rounding_mode='floor'), torch.remainder(gt_label, 4)), dim=0)
+            gt_labels.append(gt_label)
+        gt_labels = torch.stack(gt_labels, dim=0)
         gt_labels = self._stack_batch_gt(batch_data_samples)
         #16x16x2로 임시 reshape
         """
@@ -373,12 +382,12 @@ class patch_BaseDecodeHead(BaseModule, metaclass=ABCMeta):
             seg_weight = self.sampler.sample(results[0], seg_label)
         else:
             seg_weight = None
-        loss['loss_corruption'] = F.smooth_l1_loss(results[1].sigmoid(), corruption_label)
+        loss['loss_corruption'] = F.smooth_l1_loss(results[1].sigmoid(),corruption_label)
         seg_GT_mask = (results[1] > self.corruption_threshold).long().view(-1, 1, 16, 16).contiguous()
         seg_pred_mask = (results[1] > self.corruption_threshold).long().repeat(1, self.num_classes, 1, 1).contiguous()
 
-        seg_GT = (seg_label * seg_GT_mask).squeeze(1)
-        seg_pred = (results[0] * seg_pred_mask).squeeze(1)
+        seg_GT = (seg_label*seg_GT_mask).squeeze(1)
+        seg_pred = (results[0]*seg_pred_mask).squeeze(1)
         seg_GT = torch.where(seg_GT_mask.squeeze(1) == 0, torch.tensor(255, dtype=seg_GT.dtype, device=seg_GT.device), seg_GT)
         seg_pred = torch.where(seg_pred_mask.squeeze(1) == 0, torch.tensor(255, dtype=seg_pred.dtype, device=seg_pred.device), seg_pred)
 

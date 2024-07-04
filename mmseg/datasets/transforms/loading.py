@@ -21,7 +21,7 @@ import shutil
 import json
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
-import copy
+
 @TRANSFORMS.register_module()
 class LoadAnnotations(MMCV_LoadAnnotations):
     """Load annotations for semantic segmentation provided by dataset.
@@ -89,7 +89,6 @@ class LoadAnnotations(MMCV_LoadAnnotations):
                           'set `reduce_zero_label=True` when dataset '
                           'initialized')
         self.imdecode_backend = imdecode_backend
-
     def viz_seg(self, arr):
 
         # 색상 맵 정의
@@ -120,7 +119,6 @@ class LoadAnnotations(MMCV_LoadAnnotations):
 
         # 파일로 저장
         plt.savefig('visualization.png', dpi=300)
-        
     def _load_seg_map(self, results: dict) -> None:
         """Private function to load semantic segmentation annotations.
 
@@ -142,14 +140,8 @@ class LoadAnnotations(MMCV_LoadAnnotations):
                 json_data = json.load(file)
             gt_semantic_seg = np.transpose(json_data['patch'],(2,0,1))
             # self.viz_seg(gt_semantic_seg)
-            # shutil.copy(results['img_path'],'img.png')
-            soiling_class = copy.deepcopy(gt_semantic_seg[0])
-            soiling_mask = (soiling_class != 0)
-            gt_semantic_seg[0][soiling_mask] -= 1
-            gt_semantic_seg[0][soiling_mask] *= 2
-            out_soiling_class = gt_semantic_seg[0]
-            out_soiling_degree = gt_semantic_seg[1]
-            gt_semantic_seg = out_soiling_class + out_soiling_degree
+            gt_semantic_seg[0][gt_semantic_seg[0] != 0] -= 1
+            gt_semantic_seg = gt_semantic_seg[0] + gt_semantic_seg[1]
             
 
         # reduce zero_label

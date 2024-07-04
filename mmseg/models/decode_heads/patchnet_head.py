@@ -27,25 +27,44 @@ class PatchnetHead(patch_BaseDecodeHead):
                  seg_head=None,
                  corruption_head=None,
                  interpolate_mode='bilinear',
+                 conv_kernel_size=1,
                  **kwargs):
         super().__init__( **kwargs)
         self.input_dim = self.channels 
         self.interpolate_mode = interpolate_mode
+        self.conv_kernel_size = conv_kernel_size
         self.conv_seg = None
-        self.seg_head = nn.Sequential(
-            nn.Conv2d(self.input_dim, self.input_dim//2, kernel_size=3, padding=1),
-            nn.SyncBatchNorm(self.input_dim//2),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(self.input_dim//2, self.num_classes, kernel_size=1)
-            )
-            
-        if corruption_head:
-            self.corruption_head = nn.Sequential(
-                nn.Conv2d(self.input_dim, self.input_dim // 2, kernel_size=3, padding=1),
+        if self.conv_kernel_size == 1:
+            self.seg_head = nn.Sequential(
+                nn.Conv2d(self.input_dim, self.input_dim//2, kernel_size=self.conv_kernel_size),
                 nn.SyncBatchNorm(self.input_dim//2),
                 nn.ReLU(inplace=True),
-                nn.Conv2d(self.input_dim // 2, 1, kernel_size=1)  # Output 1 value per pixel
+                nn.Conv2d(self.input_dim//2, self.num_classes, kernel_size=1)
                 )
+                
+            if corruption_head:
+                self.corruption_head = nn.Sequential(
+                    nn.Conv2d(self.input_dim, self.input_dim // 2, kernel_size=self.conv_kernel_size, padding=1),
+                    nn.SyncBatchNorm(self.input_dim//2),
+                    nn.ReLU(inplace=True),
+                    nn.Conv2d(self.input_dim // 2, 1, kernel_size=1)  # Output 1 value per pixel
+                    )
+        
+        elif self.conv_kernel_size == 3:
+            self.seg_head = nn.Sequential(
+                nn.Conv2d(self.input_dim, self.input_dim//2, kernel_size=self.conv_kernel_size, padding=1),
+                nn.SyncBatchNorm(self.input_dim//2),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(self.input_dim//2, self.num_classes, kernel_size=1)
+                )
+                
+            if corruption_head:
+                self.corruption_head = nn.Sequential(
+                    nn.Conv2d(self.input_dim, self.input_dim // 2, kernel_size=self.conv_kernel_size, padding=1),
+                    nn.SyncBatchNorm(self.input_dim//2),
+                    nn.ReLU(inplace=True),
+                    nn.Conv2d(self.input_dim // 2, 1, kernel_size=1)  # Output 1 value per pixel
+                    )
     def _forward_feature(self, inputs):
         feats = self._transform_inputs(inputs)
         return feats
