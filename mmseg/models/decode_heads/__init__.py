@@ -37,6 +37,8 @@ from .uper_head import UPerHead
 from .vpd_depth_head import VPDDepthHead
 from .patchnet_head import PatchnetHead
 from .patch_decode_head import patch_BaseDecodeHead
+from .patchnet_singlehead import PatchnetSingleHead
+from .patch_singlehead_decode_head import patch_singlehead_BaseDecodeHead
 
 __all__ = [
     'FCNHead', 'PSPHead', 'ASPPHead', 'PSAHead', 'NLHead', 'GCHead', 'CCHead',
@@ -47,5 +49,5 @@ __all__ = [
     'SegformerHead', 'ISAHead', 'STDCHead', 'IterativeDecodeHead',
     'KernelUpdateHead', 'KernelUpdator', 'MaskFormerHead', 'Mask2FormerHead',
     'LightHamHead', 'PIDHead', 'DDRHead', 'VPDDepthHead', 'SideAdapterCLIPHead',
-    'PatchnetHead', 'patch_BaseDecodeHead'
+    'PatchnetHead', 'patch_BaseDecodeHead','PatchnetSingleHead', 'patch_singlehead_BaseDecodeHead'
 ]
