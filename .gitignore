@@ -120,5 +120,5 @@ mmseg/.mim
 *.pth
 work_dir
 *.png
-*.py
+# *.py
 *.txt
