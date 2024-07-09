@@ -120,5 +120,9 @@ mmseg/.mim
 *.pth
 work_dir
 *.png
+<<<<<<< HEAD
 *.py
+=======
+# *.py
+>>>>>>> d09812f65f26c55d111afc4c057b62289ea9c7dd
 *.txt
