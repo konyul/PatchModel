@@ -9,7 +9,7 @@ from mmengine.config import Config, DictAction
 from mmengine.registry import init_default_scope
 from mmengine.utils import mkdir_or_exist, progressbar
 from PIL import Image
-
+from tabulate import tabulate
 from mmseg.registry import DATASETS
 
 init_default_scope('mmseg')
@@ -161,6 +161,18 @@ def plot_confusion_matrix(confusion_matrix,
     if show:
         plt.show()
 
+def remove_zero_rows_and_columns(matrix):
+    # Remove rows and columns that are completely zero
+    non_zero_rows = np.any(matrix != 0, axis=1)
+    non_zero_columns = np.any(matrix != 0, axis=0)
+    filtered_matrix = matrix[non_zero_rows][:, non_zero_columns]
+    return filtered_matrix
+
+def print_confusion_matrix(matrix):
+    labels = ['clean', 'blur', 'blockage']
+    table = tabulate(matrix, headers=labels, showindex=labels, tablefmt='fancy_grid')
+    print(table)
+
 
 def main():
     args = parse_args()
@@ -184,13 +196,16 @@ def main():
 
     dataset = DATASETS.build(cfg.test_dataloader.dataset)
     confusion_matrix = calculate_confusion_matrix(dataset, results)
-    plot_confusion_matrix(
-        confusion_matrix,
-        dataset.METAINFO['classes'],
-        save_dir=args.save_dir,
-        show=args.show,
-        title=args.title,
-        color_theme=args.color_theme)
+    print()
+    print_confusion_matrix(remove_zero_rows_and_columns(confusion_matrix))
+    # print(remove_zero_rows_and_columns(confusion_matrix))
+    # plot_confusion_matrix(
+    #     confusion_matrix,
+    #     dataset.METAINFO['classes'],
+    #     save_dir=args.save_dir,
+    #     show=args.show,
+    #     title=args.title,
+    #     color_theme=args.color_theme)
 
 
 if __name__ == '__main__':
