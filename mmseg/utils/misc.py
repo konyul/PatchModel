@@ -4,6 +4,7 @@ from typing import List, Optional, Union
 import numpy as np
 import torch
 import torch.nn.functional as F
+import torchvision.transforms as transforms
 
 from .typing_utils import SampleList
 
@@ -124,5 +125,13 @@ def stack_batch(inputs: List[torch.Tensor],
                 dict(
                     img_padding_size=padding_size,
                     pad_shape=pad_img.shape[-2:]))
+    # same image size of batch
+    # target_size = (1536, 1920)  # 가장 큰 이미지의 크기
+    target_size = (1080, 1920)  # 가장 큰 이미지의 크기
 
+    # (2160, 3940) / (1536, 1920)
+    # breakpoint()
+    resize_transform = transforms.Resize(target_size)
+    padded_inputs = [resize_transform(img) for img in padded_inputs]
+    # stacked_inputs = torch.stack(resized_inputs, dim=0)
     return torch.stack(padded_inputs, dim=0), padded_samples

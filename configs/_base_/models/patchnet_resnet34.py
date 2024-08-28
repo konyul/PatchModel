@@ -9,23 +9,23 @@ data_preprocessor = dict(
     seg_pad_val=255)
 
 model = dict(
-    type='Patch_singlehead_EncoderDecoder',
+    type='Patch_EncoderDecoder',
     data_preprocessor=data_preprocessor,
     pretrained=None,
-    use_freq=True,
     backbone=dict(
         type='ResNet',
-        depth=10,
+        depth=34,
         num_stages=4,
         norm_cfg=norm_cfg,
         norm_eval=False,
         style='pytorch'),
 
     decode_head=dict(
-        type='PatchnetSingleHead',
+        type='PatchnetHead',
         in_channels=[64, 128, 256, 512],
         in_index=[0, 1, 2, 3],
         seg_head=True,
+        corruption_head=True,
         channels=512,
         dropout_ratio=0.1,
         num_classes=3,

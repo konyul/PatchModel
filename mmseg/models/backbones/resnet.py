@@ -6,7 +6,8 @@ import torch.utils.checkpoint as cp
 from mmcv.cnn import build_conv_layer, build_norm_layer, build_plugin_layer
 from mmengine.model import BaseModule
 from mmengine.utils.dl_utils.parrots_wrapper import _BatchNorm
-
+import torch
+import torch.nn.functional as F
 from mmseg.registry import MODELS
 from ..utils import ResLayer
 
@@ -418,7 +419,8 @@ class ResNet(BaseModule):
                  with_cp=False,
                  zero_init_residual=True,
                  pretrained=None,
-                 init_cfg=None):
+                 init_cfg=None,
+                 use_freqmap=True):
         super().__init__(init_cfg)
         if depth not in self.arch_settings:
             raise KeyError(f'invalid depth {depth} for resnet')
@@ -426,6 +428,7 @@ class ResNet(BaseModule):
         self.pretrained = pretrained
         self.zero_init_residual = zero_init_residual
         block_init_cfg = None
+        self.use_freqmap = use_freqmap
         assert not (init_cfg and pretrained), \
             'init_cfg and pretrained cannot be setting at the same time'
         if isinstance(pretrained, str):
@@ -656,9 +659,96 @@ class ResNet(BaseModule):
             m.eval()
             for param in m.parameters():
                 param.requires_grad = False
+    
+    # def fft_magnitude_edge_map(self, x, patch_size=16):
+    #     # x shape: (B, C, H, W)
+    #     B, C, H, W = x.shape
+    #     assert H % patch_size == 0 and W % patch_size == 0, "Height and Width must be divisible by patch size"
 
+    #     # Divide into patches
+    #     x_patches = x.unfold(2, patch_size, patch_size).unfold(3, patch_size, patch_size)  # shape: (B, C, H//patch_size, W//patch_size, patch_size, patch_size)
+        
+    #     B, C, nH, nW, pH, pW = x_patches.shape
+    #     x_patches = x_patches.contiguous().view(B, C, nH * nW, pH, pW)  # shape: (B, C, nH*nW, patch_size, patch_size)
+        
+    #     # Perform FFT on each patch
+    #     fft_patches = torch.fft.fft2(x_patches, dim=(-2, -1))  # shape: (B, C, nH*nW, patch_size, patch_size)
+        
+    #     # Calculate magnitude
+    #     magnitude = torch.sqrt(fft_patches.real ** 2 + fft_patches.imag ** 2)  # shape: (B, C, nH*nW, patch_size, patch_size)
+        
+    #     # Reshape back to image shape
+    #     magnitude = magnitude.view(B, C, nH, nW, pH, pW)
+    #     magnitude = magnitude.permute(0, 1, 2, 4, 3, 5).contiguous()
+    #     magnitude = magnitude.view(B, C, H, W)
+        
+    #     # Normalize the magnitude to [0, 1] for edge map
+    #     magnitude = (magnitude - magnitude.min()) / (magnitude.max() - magnitude.min())
+        
+    #     return magnitude
+    
+    # def split_frequency_components(self, fft_tensor, split_point=0.5):
+    #     B, C, H, W = fft_tensor.shape
+    #     split_h = int(H * split_point)
+    #     split_w = int(W * split_point)
+        
+    #     low_freq_fft = fft_tensor.clone()
+    #     high_freq_fft = fft_tensor.clone()
+        
+    #     low_freq_fft[:, :, split_h:, :] = 0
+    #     low_freq_fft[:, :, :, split_w:] = 0
+        
+    #     high_freq_fft[:, :, :split_h, :] = 0
+    #     high_freq_fft[:, :, :, :split_w] = 0
+        
+    #     return low_freq_fft, high_freq_fft
+
+    # def fft_ifft_image(self, x):
+    #     # x shape: (B, C, H, W)
+    #     B, C, H, W = x.shape
+    #     fft_image = torch.fft.fft2(x, dim=(-2, -1))  # shape: (B, C, H, W)
+    #     low_freq_fft, high_freq_fft = self.split_frequency_components(fft_image)
+    #     low_freq_ifft = torch.fft.ifft2(low_freq_fft, dim=(-2, -1)).real  # shape: (B, C, H, W)
+    #     high_freq_ifft = torch.fft.ifft2(high_freq_fft, dim=(-2, -1)).real  # shape: (B, C, H, W)
+    #     combined_ifft = torch.cat((low_freq_ifft, high_freq_ifft), dim=1)  # shape: (B, 2*C, H, W)
+        
+    #     return combined_ifft
+
+    # def fft_ifft_image_v2(self, inputs: torch.Tensor) -> torch.Tensor:
+    #     batch_size, channels, height, width = inputs.shape
+
+    #     # Convert RGB to Grayscale
+    #     weights = torch.tensor([0.2989, 0.5870, 0.1140], device=inputs.device).view(1, 3, 1, 1)
+    #     grayscale = torch.sum(inputs * weights, dim=1, keepdim=True)
+
+    #     # Apply FFT
+    #     f = torch.fft.fft2(grayscale)
+    #     fshift = torch.fft.fftshift(f)
+
+    #     # Create high-pass filter mask
+    #     crow, ccol = height // 2, width // 2
+    #     mask = torch.ones((height, width), dtype=torch.float32, device=inputs.device)
+    #     r = 30  # Radius for high-pass filter
+    #     y, x = torch.meshgrid(torch.arange(height, device=inputs.device), torch.arange(width, device=inputs.device))
+    #     mask_area = (x - ccol)**2 + (y - crow)**2 <= r**2
+    #     mask[mask_area] = 0
+
+    #     # Apply the mask
+    #     fshift = fshift * mask
+
+    #     # Inverse FFT
+    #     f_ishift = torch.fft.ifftshift(fshift)
+    #     img_back = torch.fft.ifft2(f_ishift)
+    #     img_back = torch.abs(img_back)
+
+    #     # Return the edge map
+    #     return img_back
+    
     def forward(self, x):
         """Forward function."""
+        # if self.use_freqmap:
+        #     edge_map = self.fft_ifft_image_v2(x)
+        #     x = torch.cat((x,edge_map),dim=1)
         if self.deep_stem:
             x = self.stem(x)
         else:

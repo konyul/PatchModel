@@ -84,5 +84,4 @@ class PatchnetHead(patch_BaseDecodeHead):
             seg_out = self.seg_head(x)
         else:
             seg_out = None
-
         return seg_out, corruption_outs
