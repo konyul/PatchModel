@@ -167,7 +167,7 @@ class Patch_singlehead_EncoderDecoder(BaseSegmentor):
 
         return losses
 
-    def loss(self, inputs: Tensor, data_samples: SampleList) -> dict:
+    def loss(self, inputs: Tensor, data_samples: SampleList):
         """Calculate losses from a batch of inputs and data samples.
 
         Args:
@@ -194,7 +194,7 @@ class Patch_singlehead_EncoderDecoder(BaseSegmentor):
 
     def postprocess_result(self,
                            seg_logits: Tensor,
-                           data_samples: OptSampleList = None) -> SampleList:
+                           data_samples: OptSampleList = None):
         """ Convert results list to `SegDataSample`.
         Args:
             seg_logits (Tensor): The segmentation results, seg_logits from
@@ -270,7 +270,7 @@ class Patch_singlehead_EncoderDecoder(BaseSegmentor):
     
     def predict(self,
                 inputs: Tensor,
-                data_samples: OptSampleList = None) -> SampleList:
+                data_samples: OptSampleList = None):
         """Predict results from a batch of inputs and data samples with post-
         processing.
 

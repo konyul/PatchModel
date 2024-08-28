@@ -5,6 +5,9 @@ crop_size = (512, 512)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='LoadAnnotations'),
+    dict(type='Resize', scale=(1920, 1080), keep_ratio=True),
+    dict(type='RandomFlip', prob=0.5),
+    dict(type='RandomRotate', prob=0.5, degree=20),
     dict(type='PackSegInputs')
 ]
 test_pipeline = [
@@ -55,5 +58,5 @@ val_dataloader = dict(
         pipeline=test_pipeline))
 test_dataloader = val_dataloader
 
-val_evaluator = dict(type='IoUMetric', iou_metrics=['mIoU'])
+val_evaluator = dict(type='IoUMetric', iou_metrics=['mIoU', 'mFscore'])
 test_evaluator = val_evaluator

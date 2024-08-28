@@ -258,7 +258,7 @@ class patch_singlehead_BaseDecodeHead(BaseModule, metaclass=ABCMeta):
         return output
 
     def loss(self, inputs: Tuple[Tensor], batch_data_samples: SampleList,
-             train_cfg: ConfigType) -> dict:
+             train_cfg: ConfigType):
         """Forward function for training.
 
         Args:
@@ -276,7 +276,7 @@ class patch_singlehead_BaseDecodeHead(BaseModule, metaclass=ABCMeta):
         return losses
 
     def predict(self, inputs: Tuple[Tensor], batch_img_metas: List[dict],
-                test_cfg: ConfigType) -> Tensor:
+                test_cfg: ConfigType):
         """Forward function for prediction.
 
         Args:
@@ -295,7 +295,7 @@ class patch_singlehead_BaseDecodeHead(BaseModule, metaclass=ABCMeta):
         #return self.predict_by_feat(seg_logits, batch_img_metas) # resize해서 output image와 resolution 맞추는 용도
         return self.forward(inputs)
 
-    def _stack_batch_gt(self, batch_data_samples: SampleList) -> Tensor:
+    def _stack_batch_gt(self, batch_data_samples: SampleList):
         gt_semantic_segs = [
             data_sample.gt_sem_seg.data for data_sample in batch_data_samples
         ]
@@ -331,7 +331,7 @@ class patch_singlehead_BaseDecodeHead(BaseModule, metaclass=ABCMeta):
         # 파일로 저장
         plt.savefig('visualization_after.png', dpi=300)
     def total_loss(self, results: Tensor,
-                     batch_data_samples: SampleList) -> dict:
+                     batch_data_samples: SampleList):
         """Compute segmentation loss.
 
         Args:
@@ -378,7 +378,7 @@ class patch_singlehead_BaseDecodeHead(BaseModule, metaclass=ABCMeta):
         return loss
 
     def predict_by_feat(self, seg_logits: Tensor,
-                        batch_img_metas: List[dict]) -> Tensor:
+                        batch_img_metas: List[dict]):
         """Transform a batch of output seg_logits to the input shape.
 
         Args:

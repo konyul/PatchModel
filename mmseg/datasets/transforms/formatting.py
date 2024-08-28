@@ -47,7 +47,7 @@ class PackSegInputs(BaseTransform):
                             'flip_direction', 'reduce_zero_label')):
         self.meta_keys = meta_keys
 
-    def transform(self, results: dict) -> dict:
+    def transform(self, results: dict):
         """Method to pack the input data.
 
         Args:

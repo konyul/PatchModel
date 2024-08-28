@@ -1080,22 +1080,23 @@ class Resize(MMCV_Resize):
     """
 
     def _resize_seg(self, results: dict) -> None:
-        """Resize semantic segmentation map with ``results['scale']``."""
-        for seg_key in results.get('seg_fields', []):
-            if results.get(seg_key, None) is not None:
-                if self.keep_ratio:
-                    gt_seg = mmcv.imrescale(
-                        results[seg_key],
-                        results['scale'],
-                        interpolation='nearest',
-                        backend=self.backend)
-                else:
-                    gt_seg = mmcv.imresize(
-                        results[seg_key],
-                        results['scale'],
-                        interpolation='nearest',
-                        backend=self.backend)
-                results[seg_key] = gt_seg
+        results['img'] = cv2.resize(results['img'],self.scale)
+        # """Resize semantic segmentation map with ``results['scale']``."""
+        # for seg_key in results.get('seg_fields', []):
+        #     if results.get(seg_key, None) is not None:
+        #         if self.keep_ratio:
+        #             gt_seg = mmcv.imrescale(
+        #                 results[seg_key],
+        #                 results['scale'],
+        #                 interpolation='nearest',
+        #                 backend=self.backend)
+        #         else:
+        #             gt_seg = mmcv.imresize(
+        #                 results[seg_key],
+        #                 results['scale'],
+        #                 interpolation='nearest',
+        #                 backend=self.backend)
+        #         results[seg_key] = gt_seg
 
 
 @TRANSFORMS.register_module()
