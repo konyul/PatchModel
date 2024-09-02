@@ -2,7 +2,7 @@ _base_ = [
     '../_base_/models/patchnet_resnet34.py',
     '../_base_/datasets/hyundae_w_aug.py',
     '../_base_/default_runtime.py', 
-    '../_base_/schedules/schedule_40k.py'
+    '../_base_/schedules/schedule_80k.py'
 ]
 crop_size = (512, 512)
 data_preprocessor = dict(size=crop_size)
@@ -32,7 +32,7 @@ param_scheduler = [
         eta_min=0.0,
         power=1.0,
         begin=500,
-        end=40000,
+        end=80000,
         by_epoch=False,
     )
 ]

@@ -20,7 +20,6 @@ model = dict(
         norm_eval=False,
         style='pytorch',
         init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet34')),
-
     decode_head=dict(
         type='PatchnetSingleHead',
         in_channels=[64, 128, 256, 512],
@@ -29,6 +28,7 @@ model = dict(
         channels=512,
         dropout_ratio=0.1,
         num_classes=3,
+        conv_kernel_size='multi',
         norm_cfg=norm_cfg,
         align_corners=False,
         input_transform='multiple_select',
