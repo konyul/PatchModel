@@ -28,6 +28,7 @@ model = dict(
         channels=512,
         dropout_ratio=0.1,
         num_classes=3,
+        conv_kernel_size='multi',
         norm_cfg=norm_cfg,
         align_corners=False,
         input_transform='multiple_select',
