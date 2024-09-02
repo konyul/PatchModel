@@ -12,9 +12,14 @@ model = dict(
     type='Patch_singlehead_EncoderDecoder',
     data_preprocessor=data_preprocessor,
     pretrained=None,
+    use_freq=True,
     backbone=dict(
-        type='ResNet_freq',
-        num_res=3),
+        type='ResNet',
+        depth=10,
+        num_stages=4,
+        norm_cfg=norm_cfg,
+        norm_eval=False,
+        style='pytorch'),
 
     decode_head=dict(
         type='PatchnetSingleHead',

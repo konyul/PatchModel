@@ -1,7 +1,7 @@
 _base_ = [
     '../_base_/models/patchnet_resnet34.py',
     '../_base_/datasets/hyundae_wo_aug.py',
-    '../_base_/default_runtime.py', 
+    '../_base_/default_runtime.py',
     '../_base_/schedules/schedule_40k.py'
 ]
 crop_size = (512, 512)
@@ -15,7 +15,7 @@ optim_wrapper = dict(
     _delete_=True,
     type='OptimWrapper',
     optimizer=dict(
-        type='AdamW', lr=0.0001, betas=(0.9, 0.999), weight_decay=0.01),
+        type='AdamW', lr=0.0005, betas=(0.9, 0.999), weight_decay=0.01),
     paramwise_cfg=dict(
         custom_keys={
             'pos_block': dict(decay_mult=0.),

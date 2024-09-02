@@ -35,7 +35,6 @@ model = dict(
         init_cfg=None,
         loss_cls=dict(
             type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)),
-
     # model training and testing settings
     train_cfg=dict(),
     test_cfg=dict(mode='whole'))

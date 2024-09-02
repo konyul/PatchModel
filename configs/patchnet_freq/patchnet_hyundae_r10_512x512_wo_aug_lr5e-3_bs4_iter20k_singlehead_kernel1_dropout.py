@@ -1,5 +1,5 @@
 _base_ = [
-    '../_base_/models/patchnet_freq_singlehead.py',
+    '../_base_/models/patchnet_singlehead.py',
     '../_base_/datasets/hyundae_wo_aug.py',
     '../_base_/default_runtime.py', 
     '../_base_/schedules/schedule_5k.py'
@@ -10,7 +10,6 @@ data_preprocessor = dict(size=crop_size)
 #checkpoint = 'https://download.openmmlab.com/mmsegmentation/v0.5/pretrain/segformer/mit_b0_20220624-7e0fe6dd.pth'  # noqa
 model = dict(
     data_preprocessor=data_preprocessor,
-    # use_freq=True,
     backbone=dict(
         type='ResNet',
         depth=10,
@@ -19,7 +18,7 @@ model = dict(
         norm_eval=False,
         use_freqmap=True,
         style='pytorch'),
-    decode_head=dict(type='PatchnetSingleHead', conv_kernel_size=3),
+    decode_head=dict(type='PatchnetSingleHead', conv_kernel_size=1,use_dropout=True),
     test_cfg=dict(mode='whole', crop_size=(1024, 1024), stride=(768, 768)))
 
 optim_wrapper = dict(

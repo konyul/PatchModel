@@ -258,7 +258,7 @@ class patch_BaseDecodeHead(BaseModule, metaclass=ABCMeta):
         return output
 
     def loss(self, inputs: Tuple[Tensor], batch_data_samples: SampleList,
-             train_cfg: ConfigType) -> dict:
+             train_cfg: ConfigType, img=None) -> dict:
         """Forward function for training.
 
         Args:
@@ -271,7 +271,8 @@ class patch_BaseDecodeHead(BaseModule, metaclass=ABCMeta):
         Returns:
             dict[str, Tensor]: a dictionary of loss components
         """
-        results= self.forward(inputs)        
+        # results= self.forward(inputs, img)        
+        results= self.forward(inputs)
         losses = self.total_loss(results, batch_data_samples)
         return losses
 

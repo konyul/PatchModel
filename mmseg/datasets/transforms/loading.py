@@ -220,6 +220,11 @@ class LoadAnnotations(MMCV_LoadAnnotations):
             gt_semantic_seg_copy = gt_semantic_seg.copy()
             for old_id, new_id in results['label_map'].items():
                 gt_semantic_seg[gt_semantic_seg_copy == old_id] = new_id
+        
+        # breakpoint()
+        if (gt_semantic_seg>=3).sum():
+            print(gt_semantic_seg)
+            exit()
         results['gt_seg_map'] = gt_semantic_seg
         results['seg_fields'].append('gt_seg_map')
         # shutil.copy(results['img_path'],'max_imgs.jpg')

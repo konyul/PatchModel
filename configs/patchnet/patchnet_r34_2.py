@@ -1,7 +1,7 @@
 _base_ = [
     '../_base_/models/patchnet_resnet34.py',
-    '../_base_/datasets/hyundae_wo_aug.py',
-    '../_base_/default_runtime.py', 
+    '../_base_/datasets/hyundae_w_aug.py',
+    '../_base_/default_runtime.py',
     '../_base_/schedules/schedule_40k.py'
 ]
 crop_size = (512, 512)
@@ -9,7 +9,9 @@ data_preprocessor = dict(size=crop_size)
 model = dict(
     data_preprocessor=data_preprocessor,
     backbone=dict(init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet34')),
-    test_cfg=dict(mode='whole', crop_size=(1024, 1024), stride=(768, 768)))
+    decode_head=dict(conv_kernel_size=3),
+    test_cfg=dict(mode='whole', crop_size=(1024, 1024), stride=(768, 768))
+    )
 
 optim_wrapper = dict(
     _delete_=True,
