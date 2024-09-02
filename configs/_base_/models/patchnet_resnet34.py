@@ -9,7 +9,7 @@ data_preprocessor = dict(
     seg_pad_val=255)
 
 model = dict(
-    type='Patch_EncoderDecoder',
+    type='Patch_singlehead_EncoderDecoder',
     data_preprocessor=data_preprocessor,
     pretrained=None,
     backbone=dict(
@@ -18,14 +18,13 @@ model = dict(
         num_stages=4,
         norm_cfg=norm_cfg,
         norm_eval=False,
-        style='pytorch'),
-
+        style='pytorch',
+        init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet34')),
     decode_head=dict(
-        type='PatchnetHead',
+        type='PatchnetSingleHead',
         in_channels=[64, 128, 256, 512],
         in_index=[0, 1, 2, 3],
         seg_head=True,
-        corruption_head=True,
         channels=512,
         dropout_ratio=0.1,
         num_classes=3,
@@ -35,7 +34,6 @@ model = dict(
         init_cfg=None,
         loss_cls=dict(
             type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)),
-
     # model training and testing settings
     train_cfg=dict(),
     test_cfg=dict(mode='whole'))

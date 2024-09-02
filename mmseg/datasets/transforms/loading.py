@@ -21,6 +21,7 @@ import shutil
 import json
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+from PIL import Image, ImageDraw, ImageFont
 
 @TRANSFORMS.register_module()
 class LoadAnnotations(MMCV_LoadAnnotations):
@@ -119,7 +120,62 @@ class LoadAnnotations(MMCV_LoadAnnotations):
 
         # 파일로 저장
         plt.savefig('visualization.png', dpi=300)
-    def _load_seg_map(self, results: dict) -> None:
+        
+    def overlay_patch(self, image_path, json_path, output_path):
+        # 이미지 로드
+        with Image.open(image_path) as img:
+            original_img = img.copy()
+            img_array = np.array(img)
+
+        # 이미지 크기 확인
+        height, width = img_array.shape[:2]
+
+        # JSON 파일 로드
+        with open(json_path, 'r') as f:
+            data = json.load(f)
+        
+        # 패치 데이터 가져오기
+        patch = data.get('patch')
+        if not patch or len(patch) != 16 or any(len(row) != 16 for row in patch):
+            raise ValueError("Invalid patch data in JSON file")
+
+        # 패치 크기 계산
+        patch_height, patch_width = height // 16, width // 16  # 67, 120
+
+        # 오버레이 이미지 생성 (투명한 RGBA 이미지)
+        overlay = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(overlay)
+
+        # 패치 오버레이
+        for i in range(16):
+            for j in range(16):
+                if patch[i][j] == [1,1]:
+                    color = (255, 0, 0, 128)  # 빨간색, 50% 투명
+                elif patch[i][j] == [1,2]:
+                    color = (0, 0, 255, 128)  # 파란색, 50% 투명
+                else:
+                    continue
+                y_start, y_end = i * patch_height, (i + 1) * patch_height
+                x_start, x_end = j * patch_width, (j + 1) * patch_width
+                draw.rectangle([x_start, y_start, x_end, y_end], fill=color)
+
+        # 원본 이미지와 오버레이 합성
+        result = Image.alpha_composite(original_img.convert('RGBA'), overlay)
+
+        # 원본과 결과 이미지를 나란히 배치
+        combined = Image.new(original_img.mode, (width * 2, height))
+        combined.paste(original_img, (0, 0))
+        combined.paste(result.convert(original_img.mode), (width, 0))
+
+        # 레이블 추가
+        draw = ImageDraw.Draw(combined)
+        font = ImageFont.load_default()
+        draw.text((10, 10), "Original", font=font, fill=(255, 255, 255))
+        draw.text((width + 10, 10), "Patched", font=font, fill=(255, 255, 255))
+
+        # 결과 이미지 압축 저장
+        combined.save(output_path, 'JPEG', quality=70)
+    def _load_seg_map(self, results: dict):
         """Private function to load semantic segmentation annotations.
 
         Args:
@@ -139,11 +195,11 @@ class LoadAnnotations(MMCV_LoadAnnotations):
             with open(results['seg_map_path'], "r") as file:
                 json_data = json.load(file)
             gt_semantic_seg = np.transpose(json_data['patch'],(2,0,1))
+            # self.overlay_patch(results['img_path'],results['seg_map_path'],'visualization.png')
             # self.viz_seg(gt_semantic_seg)
             gt_semantic_seg[0][gt_semantic_seg[0] != 0] -= 1
             gt_semantic_seg = gt_semantic_seg[0] + gt_semantic_seg[1]
             
-
         # reduce zero_label
         if self.reduce_zero_label is None:
             self.reduce_zero_label = results['reduce_zero_label']
