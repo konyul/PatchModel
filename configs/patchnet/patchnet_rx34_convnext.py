@@ -1,5 +1,5 @@
 _base_ = [
-    '../_base_/models/patchnet_resnet34.py',
+    '../_base_/models/patchnet_resnext50.py',
     '../_base_/datasets/hyundae_w_aug.py',
     '../_base_/default_runtime.py',
     '../_base_/schedules/schedule_40k.py'
@@ -8,7 +8,7 @@ crop_size = (512, 512)
 data_preprocessor = dict(size=crop_size)
 model = dict(
     data_preprocessor=data_preprocessor,
-    backbone=dict(init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet34')),
+    # backbone=dict(init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet34')),
     decode_head=dict(
         conv_next=True,
         conv_kernel_size=7,

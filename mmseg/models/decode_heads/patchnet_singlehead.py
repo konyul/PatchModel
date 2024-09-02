@@ -28,7 +28,7 @@ class PatchnetSingleHead(patch_singlehead_BaseDecodeHead):
                  interpolate_mode='bilinear',
                  conv_kernel_size=1,
                  conv_next=False,
-                 num_layer=3,
+                 num_layer=2,
                  **kwargs):
         super().__init__( **kwargs)
         self.input_dim = self.channels 

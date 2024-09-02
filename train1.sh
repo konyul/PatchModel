@@ -1,4 +1,4 @@
-CONFIG=patchnet_r34
+CONFIG=patchnet_rx50_convnextv2
 # CONFIG=patchnet_hyundae_r34_512x512_wo_aug_lr5e-4_bs4_iter40k
 
 CONFIG_PATH=patchnet

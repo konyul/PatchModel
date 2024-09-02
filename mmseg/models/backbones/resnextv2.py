@@ -6,46 +6,9 @@ from mmcv.cnn import build_conv_layer, build_norm_layer
 from mmseg.registry import MODELS
 from ..utils import ResLayer
 from .resnet import Bottleneck as _Bottleneck
-from .resnet import BasicBlock as _BasicBlock
 from .resnet import ResNet
 
-class BasicBlock(_BasicBlock):
-    def __init__(self,
-                 inplanes,
-                 planes,
-                 groups=1,
-                 base_width=4,
-                 base_channels=64,
-                 **kwargs):
-        super().__init__(inplanes, planes, **kwargs)
-        if groups == 1:
-            width = self.planes
-        else:
-            width = math.floor(planes * (base_width / base_channels)) * groups
-        self.norm1_name, norm1 = build_norm_layer(
-            self.norm_cfg, width, postfix=1)
-        self.norm2_name, norm2 = build_norm_layer(
-            self.norm_cfg, width, postfix=2)
-        self.conv1 = build_conv_layer(
-            self.conv_cfg,
-            inplanes,
-            width,
-            3,
-            stride=self.stride,
-            padding=self.dilation,
-            dilation=self.dilation,
-            bias=False)
-        self.add_module(self.norm1_name, norm1)
-        self.conv2 = build_conv_layer(
-            self.conv_cfg,
-            width,
-            width,
-            kernel_size=3,
-            padding=1, 
-            groups=groups,
-            bias=False)
-        self.add_module(self.norm2_name, norm2)
-        
+
 class Bottleneck(_Bottleneck):
     """Bottleneck block for ResNeXt.
 
@@ -56,8 +19,6 @@ class Bottleneck(_Bottleneck):
     def __init__(self,
                  inplanes,
                  planes,
-                 stride=1,
-                 dilation=1,
                  groups=1,
                  base_width=4,
                  base_channels=64,
@@ -96,8 +57,8 @@ class Bottleneck(_Bottleneck):
                 width,
                 kernel_size=3,
                 stride=self.conv2_stride,
-                padding=dilation,
-                dilation=dilation,
+                padding=self.dilation,
+                dilation=self.dilation,
                 groups=groups,
                 bias=False)
         else:
@@ -108,8 +69,8 @@ class Bottleneck(_Bottleneck):
                 width,
                 kernel_size=3,
                 stride=self.conv2_stride,
-                padding=dilation,
-                dilation=dilation,
+                padding=self.dilation,
+                dilation=self.dilation,
                 groups=groups,
                 bias=False)
 
@@ -117,7 +78,7 @@ class Bottleneck(_Bottleneck):
         self.conv3 = build_conv_layer(
             self.conv_cfg,
             width,
-            planes * self.expansion,
+            self.planes * self.expansion,
             kernel_size=1,
             bias=False)
         self.add_module(self.norm3_name, norm3)
@@ -170,7 +131,6 @@ class ResNeXt(ResNet):
     """
 
     arch_settings = {
-        34: (BasicBlock, (3, 4, 6, 3)),
         50: (Bottleneck, (3, 4, 6, 3)),
         101: (Bottleneck, (3, 4, 23, 3)),
         152: (Bottleneck, (3, 8, 36, 3))
