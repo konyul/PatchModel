@@ -36,7 +36,6 @@ class PatchnetSingleHead(patch_singlehead_BaseDecodeHead):
         self.conv_kernel_size = conv_kernel_size
         self.conv_next=conv_next
         self.conv_seg = None
-
         if self.conv_next:
             layer = []
             layer.append(nn.Conv2d(self.input_dim, self.input_dim//2, kernel_size=self.conv_kernel_size, padding=self.conv_kernel_size//2, stride = 2))
@@ -72,6 +71,7 @@ class PatchnetSingleHead(patch_singlehead_BaseDecodeHead):
                 nn.ReLU(inplace=True),
                 nn.Conv2d(self.input_dim//2, self.num_classes, kernel_size=1)
                 )
+        
         elif self.conv_kernel_size == 'multi':
             self.conv_kernel_size = 3
             self.seg_head = nn.Sequential(
@@ -102,9 +102,9 @@ class PatchnetSingleHead(patch_singlehead_BaseDecodeHead):
             x = F.interpolate(x, size=(16, 16),mode=self.interpolate_mode)
         if self.seg_head is not None:
             seg_out = self.seg_head(x)
-            seg_out_dilated = self.seg_head_dilated(x)
-            seg_out_dilatedv2 = self.seg_head_dilatedv2(x)
-            seg_out = seg_out + seg_out_dilated + seg_out_dilatedv2
+            # seg_out_dilated = self.seg_head_dilated(x)
+            # seg_out_dilatedv2 = self.seg_head_dilatedv2(x)
+            # seg_out = seg_out + seg_out_dilated + seg_out_dilatedv2
         else:
             seg_out = None
         return seg_out

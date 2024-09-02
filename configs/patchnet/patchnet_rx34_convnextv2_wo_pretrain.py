@@ -1,5 +1,5 @@
 _base_ = [
-    '../_base_/models/patchnet_resnext50.py',
+    '../_base_/models/patchnet_resnext34.py',
     '../_base_/datasets/hyundae_w_aug.py',
     '../_base_/default_runtime.py',
     '../_base_/schedules/schedule_40k.py'
