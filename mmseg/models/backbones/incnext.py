@@ -7,10 +7,10 @@ import torch
 import torch.nn.functional as F
 from mmseg.registry import MODELS
 from timm.models.layers import trunc_normal_, DropPath
-from timm.data import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
-from timm.models.helpers import checkpoint_seq
-from timm.models.registry import register_model
-from timm.models.layers.helpers import to_2tuple
+# from timm.data import IMAGENET_DEFAULT_MEAN, IMAGENET_DEFAULT_STD
+# from timm.models.helpers import checkpoint_seq
+# from timm.models.registry import register_model
+# from timm.models.layers.helpers import to_2tuple
 
 
 class InceptionDWConv2d(nn.Module):
@@ -77,7 +77,7 @@ class Block(nn.Module):
 
 @MODELS.register_module()
 class InceptionNeXt(nn.Module):
-    def __init__(self, in_chans=3, depths=[3, 3, 9, 3], dims=[64, 128, 256, 512], 
+    def __init__(self, in_chans=3, depths=[2, 2, 8, 2], dims=[64, 128, 256, 512], 
                  drop_path_rate=0., out_indices=(0, 1, 2, 3)):
         super().__init__()
         self.depths = depths
