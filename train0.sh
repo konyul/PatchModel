@@ -1,10 +1,10 @@
-CONFIG=patchnet_r34_convnextv2_wo_pretrain
+CONFIG=patchnet_cxT_convnextv2_wo_pretrain
 CONFIG_PATH=patchnet
-PORT=29501 tools/dist_train.sh configs/$CONFIG_PATH/$CONFIG.py 4 --work-dir work_dir/$CONFIG_PATH/$CONFIG
+PORT=29501 TORCH_DISTRIBUTED_DEBUG=DETAIL CUDA_LAUNCH_BLOCKING=0 tools/dist_train.sh configs/$CONFIG_PATH/$CONFIG.py 1 --work-dir work_dir/$CONFIG_PATH/$CONFIG
 
-CONFIG=patchnet_rx34_convnextv2_wo_pretrain
-CONFIG_PATH=patchnet
-PORT=29501 tools/dist_train.sh configs/$CONFIG_PATH/$CONFIG.py 4 --work-dir work_dir/$CONFIG_PATH/$CONFIG
+# CONFIG=patchnet_r34_convnextv2_wo_pretrain
+# CONFIG_PATH=patchnet
+# PORT=29501 CUDA_LAUNCH_BLOCKING=0 tools/dist_train.sh configs/$CONFIG_PATH/$CONFIG.py 1 --work-dir work_dir/$CONFIG_PATH/$CONFIG
 
 
 # PORT=29500 tools/dist_test.sh configs/$CONFIG_PATH/$CONFIG.py ./work_dir/$CONFIG_PATH/$CONFIG/iter_2000.pth 1 

@@ -81,7 +81,7 @@ class Block(nn.Module):
         x = input + self.drop_path(x)
         return x
 @MODELS.register_module()
-class ConvNeXtV2(nn.Module):
+class ConvNeXtv2(nn.Module):
     """ ConvNeXt V2
         
     Args:
@@ -92,12 +92,12 @@ class ConvNeXtV2(nn.Module):
         drop_path_rate (float): Stochastic depth rate. Default: 0.
         head_init_scale (float): Init scaling value for classifier weights and biases. Default: 1.
     """
-    def __init__(self, in_chans=3, num_classes=1000, 
-                 depths=[3, 3, 9, 3], dims=[96, 192, 384, 768], 
-                 drop_path_rate=0., head_init_scale=1.
+    def __init__(self, in_chans=3, depths=[3, 3, 9, 3], dims=[64, 128, 256, 512], 
+                 drop_path_rate=0., out_indices=(0, 1, 2, 3),
                  ):
         super().__init__()
         self.depths = depths
+        self.out_indices = out_indices
         self.downsample_layers = nn.ModuleList() # stem and 3 intermediate downsampling conv layers
         stem = nn.Sequential(
             nn.Conv2d(in_chans, dims[0], kernel_size=4, stride=4),
@@ -121,12 +121,8 @@ class ConvNeXtV2(nn.Module):
             self.stages.append(stage)
             cur += depths[i]
 
-        self.norm = nn.LayerNorm(dims[-1], eps=1e-6) # final norm layer
-        self.head = nn.Linear(dims[-1], num_classes)
-
+        # self.norm = nn.LayerNorm(dims[-1], eps=1e-6) # final norm layer
         self.apply(self._init_weights)
-        self.head.weight.data.mul_(head_init_scale)
-        self.head.bias.data.mul_(head_init_scale)
 
     def _init_weights(self, m):
         if isinstance(m, (nn.Conv2d, nn.Linear)):
@@ -134,14 +130,27 @@ class ConvNeXtV2(nn.Module):
             nn.init.constant_(m.bias, 0)
 
     def forward_features(self, x):
+        outs = []
         for i in range(4):
             x = self.downsample_layers[i](x)
             x = self.stages[i](x)
-        return self.norm(x.mean([-2, -1])) # global average pooling, (N, C, H, W) -> (N, C)
+            if i in self.out_indices:
+                out = x
+                # if i == 3:  # only for the last stage
+                #     out = self.norm(x.mean([-2, -1]))  # global average pooling + norm
+                # else:
+                    
+                outs.append(out)
+        return tuple(outs)
+    
+    # def forward_features(self, x):
+    #     for i in range(4):
+    #         x = self.downsample_layers[i](x)
+    #         x = self.stages[i](x)
+    #     return self.norm(x.mean([-2, -1])) # global average pooling, (N, C, H, W) -> (N, C)
 
     def forward(self, x):
         x = self.forward_features(x)
-        x = self.head(x)
         return x
 
 # def convnextv2_tiny(**kwargs):
