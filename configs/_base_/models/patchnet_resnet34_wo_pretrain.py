@@ -19,7 +19,7 @@ model = dict(
         norm_cfg=norm_cfg,
         norm_eval=False,
         style='pytorch',
-        init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet34')
+        # init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet34')
         ),
     decode_head=dict(
         type='PatchnetSingleHead',
