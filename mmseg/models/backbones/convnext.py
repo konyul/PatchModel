@@ -54,7 +54,7 @@ class Block(nn.Module):
 
 @MODELS.register_module()
 class ConvNeXt(nn.Module):
-    def __init__(self, in_chans=3, depths=[3, 3, 9, 3], dims=[64, 128, 256, 512], 
+    def __init__(self, in_chans=3, depths=[2, 2, 8, 2], dims=[64, 128, 256, 512], 
                  drop_path_rate=0., out_indices=(0, 1, 2, 3)):
         super().__init__()
         self.depths = depths
