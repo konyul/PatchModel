@@ -92,7 +92,7 @@ class ConvNeXtv2(nn.Module):
         drop_path_rate (float): Stochastic depth rate. Default: 0.
         head_init_scale (float): Init scaling value for classifier weights and biases. Default: 1.
     """
-    def __init__(self, in_chans=3, depths=[3, 3, 9, 3], dims=[64, 128, 256, 512], 
+    def __init__(self, in_chans=3, depths=[2, 2, 8, 2], dims=[64, 128, 256, 512], 
                  drop_path_rate=0., out_indices=(0, 1, 2, 3),
                  ):
         super().__init__()
