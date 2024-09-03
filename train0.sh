@@ -1,4 +1,4 @@
-CONFIG=patchnet_cxT_convnextv2_wo_pretrain
+CONFIG=patchnet_cxTv2_convnextv2_wo_pretrain
 CONFIG_PATH=patchnet
 PORT=29501 TORCH_DISTRIBUTED_DEBUG=DETAIL CUDA_LAUNCH_BLOCKING=0 tools/dist_train.sh configs/$CONFIG_PATH/$CONFIG.py 1 --work-dir work_dir/$CONFIG_PATH/$CONFIG
 
