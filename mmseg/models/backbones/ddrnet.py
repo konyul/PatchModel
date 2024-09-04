@@ -218,5 +218,4 @@ class DDRNet(BaseModule):
             size=out_size,
             mode='bilinear',
             align_corners=self.align_corners)
-
         return (temp_context, x_s + x_c) if self.training else x_s + x_c

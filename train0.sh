@@ -1,4 +1,4 @@
-CONFIG=patchnet_ixN_convnextv2_wo_pretrain
+CONFIG=patchnet_ddrnet
 CONFIG_PATH=patchnet
 PORT=29501 tools/dist_train.sh configs/$CONFIG_PATH/$CONFIG.py 1 --work-dir work_dir/$CONFIG_PATH/$CONFIG
 
