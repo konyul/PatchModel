@@ -61,8 +61,8 @@ class DDRpatchHead(BaseDecodeHead):
             self,
             inputs: Union[Tensor,
                           Tuple[Tensor]]) -> Union[Tensor, Tuple[Tensor]]:
-        inputs_resized = [F.interpolate(input_tensor, size=(16, 16), mode='bilinear', align_corners=False) for input_tensor in inputs]
         if self.training:
+            inputs_resized = [F.interpolate(input_tensor, size=(16, 16), mode='bilinear', align_corners=False) for input_tensor in inputs]
             c3_feat, c5_feat = inputs_resized
             x_c = self.head(c5_feat)
             x_c = self.cls_seg(x_c)
@@ -70,6 +70,7 @@ class DDRpatchHead(BaseDecodeHead):
             x_s = self.aux_cls_seg(x_s)
             return x_c, x_s
         else:
+            inputs_resized = F.interpolate(inputs, size=(16, 16), mode='bilinear', align_corners=False)
             x_c = self.head(inputs_resized)
             x_c = self.cls_seg(x_c)
             return x_c

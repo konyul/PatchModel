@@ -279,7 +279,6 @@ class BaseDecodeHead(BaseModule, metaclass=ABCMeta):
             Tensor: Outputs segmentation logits map.
         """
         seg_logits = self.forward(inputs)
-
         return self.predict_by_feat(seg_logits, batch_img_metas)
 
     def _stack_batch_gt(self, batch_data_samples: SampleList) -> Tensor:
@@ -357,7 +356,8 @@ class BaseDecodeHead(BaseModule, metaclass=ABCMeta):
             size = batch_img_metas[0]['pad_shape'][:2]
         else:
             size = batch_img_metas[0]['img_shape']
-
+        # breakpoint()
+        size=(16,16)
         seg_logits = resize(
             input=seg_logits,
             size=size,

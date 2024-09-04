@@ -65,15 +65,6 @@ class IoUMetric(BaseMetric):
         self.format_only = format_only
 
     def process(self, data_batch: dict, data_samples: Sequence[dict]) -> None:
-        """Process one batch of data and data_samples.
-
-        The processed results should be stored in ``self.results``, which will
-        be used to compute the metrics when all batches have been processed.
-
-        Args:
-            data_batch (dict): A batch of data from the dataloader.
-            data_samples (Sequence[dict]): A batch of outputs from the model.
-        """
         num_classes = len(self.dataset_meta['classes'])
         for data_sample in data_samples:
             pred_label = data_sample['pred_sem_seg']['data'].squeeze()
@@ -100,17 +91,6 @@ class IoUMetric(BaseMetric):
                 output.save(png_filename)
 
     def compute_metrics(self, results: list) -> Dict[str, float]:
-        """Compute the metrics from processed results.
-
-        Args:
-            results (list): The processed results of each batch.
-
-        Returns:
-            Dict[str, float]: The computed metrics. The keys are the names of
-                the metrics, and the values are corresponding results. The key
-                mainly includes aAcc, mIoU, mAcc, mDice, mFscore, mPrecision,
-                mRecall.
-        """
         logger: MMLogger = MMLogger.get_current_instance()
         if self.format_only:
             logger.info(f'results are saved to {osp.dirname(self.output_dir)}')
@@ -162,24 +142,6 @@ class IoUMetric(BaseMetric):
     @staticmethod
     def intersect_and_union(pred_label: torch.tensor, label: torch.tensor,
                             num_classes: int, ignore_index: int):
-        """Calculate Intersection and Union.
-
-        Args:
-            pred_label (torch.tensor): Prediction segmentation map
-                or predict result filename. The shape is (H, W).
-            label (torch.tensor): Ground truth segmentation map
-                or label filename. The shape is (H, W).
-            num_classes (int): Number of categories.
-            ignore_index (int): Index that will be ignored in evaluation.
-
-        Returns:
-            torch.Tensor: The intersection of prediction and ground truth
-                histogram on all classes.
-            torch.Tensor: The union of prediction and ground truth histogram on
-                all classes.
-            torch.Tensor: The prediction histogram on all classes.
-            torch.Tensor: The ground truth histogram on all classes.
-        """
 
         mask = (label != ignore_index)
         pred_label = pred_label[mask]
