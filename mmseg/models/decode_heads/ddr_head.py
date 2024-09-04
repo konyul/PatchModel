@@ -66,7 +66,6 @@ class DDRHead(BaseDecodeHead):
             x_c = self.cls_seg(x_c)
             x_s = self.aux_head(c3_feat)
             x_s = self.aux_cls_seg(x_s)
-
             return x_c, x_s
         else:
             x_c = self.head(inputs)
@@ -107,7 +106,6 @@ class DDRHead(BaseDecodeHead):
             mode='bilinear',
             align_corners=self.align_corners)
         seg_label = seg_label.squeeze(1)
-
         loss['loss_context'] = self.loss_decode[0](context_logit, seg_label)
         loss['loss_spatial'] = self.loss_decode[1](spatial_logit, seg_label)
         loss['acc_seg'] = accuracy(
