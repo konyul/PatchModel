@@ -24,7 +24,7 @@ class MMSegWrapper:
 
     def download_model(self):
         config_file = '/media/spalab/sdd/kypark/PatchModel/configs/patchnet/patchnet_r34.py'
-        checkpoint_file = '/media/spalab/sdd/kypark/PatchModel/work_dirs/hmc_5000/iter_40000.pth'
+        checkpoint_file = '/media/spalab/sdd/kypark/PatchModel/work_dirs/hmc_5000_pretrained_conv3x3_dilated_x2/iter_36000.pth'
         self.model = init_model(config_file, checkpoint_file, device='cuda:0')
 
     def get_result(self, src_filename):

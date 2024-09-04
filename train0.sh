@@ -1,10 +1,10 @@
-CONFIG=patchnet_ixN_convnextv2_wo_pretrain
+CONFIG=patchnet_cxN_convnextv2_wo_pretrain
 CONFIG_PATH=patchnet
-PORT=29501 tools/dist_train.sh configs/$CONFIG_PATH/$CONFIG.py 1 --work-dir work_dir/$CONFIG_PATH/$CONFIG
+PORT=29501 CUDA_VISIBLE_DEVICES=0,1,2 tools/dist_train.sh configs/$CONFIG_PATH/$CONFIG.py 3 --work-dir work_dir/$CONFIG_PATH/$CONFIG
 
-# CONFIG=patchnet_cxN_convnextv2_wo_pretrain
-# CONFIG_PATH=patchnet
-# PORT=29501 tools/dist_train.sh configs/$CONFIG_PATH/$CONFIG.py 4 --work-dir work_dir/$CONFIG_PATH/$CONFIG
+CONFIG=patchnet_cxNv2_convnextv2_wo_pretrain
+CONFIG_PATH=patchnet
+PORT=29501 CUDA_VISIBLE_DEVICES=0,1,2 tools/dist_train.sh configs/$CONFIG_PATH/$CONFIG.py 3 --work-dir work_dir/$CONFIG_PATH/$CONFIG
 
 
 # PORT=29500 tools/dist_test.sh configs/$CONFIG_PATH/$CONFIG.py ./work_dir/$CONFIG_PATH/$CONFIG/iter_2000.pth 1 
