@@ -38,7 +38,7 @@ model = dict(
         align_corners=False,
         init_cfg=dict(type='Pretrained', checkpoint=checkpoint)),
     decode_head=dict(
-        type='DDRHead',
+        type='DDRpatchHead',
         in_channels=64 * 4,
         channels=128,
         dropout_ratio=0.,

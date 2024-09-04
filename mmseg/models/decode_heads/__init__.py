@@ -5,6 +5,7 @@ from .aspp_head import ASPPHead
 from .cc_head import CCHead
 from .da_head import DAHead
 from .ddr_head import DDRHead
+from .ddr_patchhead import DDRpatchHead
 from .dm_head import DMHead
 from .dnl_head import DNLHead
 from .dpt_head import DPTHead
@@ -49,5 +50,6 @@ __all__ = [
     'SegformerHead', 'ISAHead', 'STDCHead', 'IterativeDecodeHead',
     'KernelUpdateHead', 'KernelUpdator', 'MaskFormerHead', 'Mask2FormerHead',
     'LightHamHead', 'PIDHead', 'DDRHead', 'VPDDepthHead', 'SideAdapterCLIPHead',
-    'PatchnetHead', 'patch_BaseDecodeHead','PatchnetSingleHead', 'patch_singlehead_BaseDecodeHead'
+    'PatchnetHead', 'patch_BaseDecodeHead','PatchnetSingleHead', 'patch_singlehead_BaseDecodeHead',
+    'DDRpatchHead'
 ]
