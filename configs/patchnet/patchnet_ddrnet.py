@@ -64,7 +64,7 @@ model = dict(
     train_cfg=dict(),
     test_cfg=dict(mode='whole'))
 
-train_dataloader = dict(batch_size=6, num_workers=4)
+train_dataloader = dict(batch_size=4, num_workers=4)
 
 iters = 40000
 # iters = 120000
