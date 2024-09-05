@@ -82,7 +82,8 @@ class Patch_singlehead_EncoderDecoder(BaseSegmentor):
                  data_preprocessor: OptConfigType = None,
                  pretrained: Optional[str] = None,
                  init_cfg: OptMultiConfig = None,
-                 corruption_threshold=0.3
+                 corruption_threshold=0.3,
+                 time_check=False,
                  ):
         super().__init__(
             data_preprocessor=data_preprocessor, init_cfg=init_cfg)
@@ -98,6 +99,12 @@ class Patch_singlehead_EncoderDecoder(BaseSegmentor):
         self.corruption_threshold=corruption_threshold
         self.train_cfg = train_cfg
         self.test_cfg = test_cfg
+
+        self.time_check = time_check
+        if self.time_check:
+            self.start_event = torch.cuda.Event(enable_timing=True)
+            self.end_event = torch.cuda.Event(enable_timing=True)
+            self.time_list = []
 
         assert self.with_decode_head
 
@@ -390,7 +397,14 @@ class Patch_singlehead_EncoderDecoder(BaseSegmentor):
             Tensor: The segmentation results, seg_logits from model of each
                 input image.
         """
+        if self.time_check:
+            self.start_event.record()
         seg_logits = self.encode_decode(inputs, batch_img_metas)
+        if self.time_check:
+            self.end_event.record() 
+            torch.cuda.synchronize()  
+            cur_iter_time = self.start_event.elapsed_time(self.end_event)
+            print(cur_iter_time)
 
         return seg_logits
 

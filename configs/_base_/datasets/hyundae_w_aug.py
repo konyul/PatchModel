@@ -55,6 +55,9 @@ val_dataloader = dict(
         data_root=data_root,
         data_prefix=dict(
             img_path='img_dir/demo_1_5', seg_map_path='ann_dir/demo_1_5'),
+            # img_path='img_dir/val/', seg_map_path='ann_dir/val/'),
+            #img_path='img_dir/val_classified/non_WD', seg_map_path='ann_dir/val_classified/non_WD'),
+
         pipeline=test_pipeline))
 test_dataloader = val_dataloader
 
