@@ -37,6 +37,7 @@ class HyundaeDataset(BaseSegDataset):
         data_list = []
         img_dir = self.data_prefix.get('img_path', None)
         ann_dir = self.data_prefix.get('seg_map_path', None)
+        #breakpoint()
         if not osp.isdir(self.ann_file) and self.ann_file:
             assert osp.isfile(self.ann_file), \
                 f'Failed to load `ann_file` {self.ann_file}'
