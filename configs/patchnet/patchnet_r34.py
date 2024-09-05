@@ -37,7 +37,7 @@ param_scheduler = [
     )
 ]
 
-#load_from = '/mnt/4tb/hyundai/PatchModel/work_dirs/0723_woodscape_final/iter_20000.pth'
+# load_from = './work_dirs/hmc_5000_pretrained_conv3x3_dilated_x2/iter_36000.pth'
 
 train_dataloader = dict(batch_size=4, num_workers=4)
 val_dataloader = dict(batch_size=1, num_workers=4)

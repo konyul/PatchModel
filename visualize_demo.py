@@ -5,7 +5,8 @@ import mmcv
 import cv2
 import numpy as np
 from mmseg.apis import init_model, inference_model
-
+import shutil
+import json
 def open_directory(path):
     if sys.platform.startswith('darwin'):  # macOS
         os.system('open "{}"'.format(path))
@@ -23,7 +24,7 @@ class MMSegWrapper:
 
     def download_model(self):
         config_file = '/media/spalab/sdd/kypark/PatchModel/configs/patchnet/patchnet_r34.py'
-        checkpoint_file = '/media/spalab/sdd/kypark/PatchModel/work_dirs/hmc_5000/iter_40000.pth'
+        checkpoint_file = './work_dirs/hmc_5000_pretrained_conv3x3_dilated_x2_demo_1_5_finetune_w_o_pretrained/iter_16000.pth'
         self.model = init_model(config_file, checkpoint_file, device='cuda:0')
 
     def get_result(self, src_filename):
@@ -33,6 +34,8 @@ class MMSegWrapper:
                 ext = Path(src_filename).suffix
                 save_dir = '/media/spalab/sdd/kypark/PatchModel/results'
                 os.makedirs(save_dir, exist_ok=True)
+                # img_dir = '/mnt/sdb/PatchModel/results_img'
+                # os.makedirs(img_dir, exist_ok=True)
                 dst_filename = os.path.join(save_dir, f'{Path(src_filename).stem}_result{ext}')
                 if ext in ['.jpg', '.png', '.jpeg']:
                     img = mmcv.imread(src_filename)
@@ -40,7 +43,6 @@ class MMSegWrapper:
                     resized_img = cv2.resize(img, (512, 512))
                     result = inference_model(self.model, resized_img)
                     seg_map = result.pred_sem_seg.data.cpu().numpy().squeeze()
-
                     print("Segmentation result shape (before resize):", seg_map.shape)
 
                     if seg_map.shape == (16, 16):
@@ -61,7 +63,6 @@ class MMSegWrapper:
                         1: (0, 0, 255, 128),  # 반투명한 빨간색
                         2: (0, 0, 255)  # 불투명한 빨간색
                     }
-
                     for i in range(16):
                         for j in range(16):
                             label = seg_map[i, j]
@@ -79,8 +80,15 @@ class MMSegWrapper:
                                     cv2.addWeighted(overlay, alpha, visualized_img[y_start:y_end, x_start:x_end], 1 - alpha, 0, visualized_img[y_start:y_end, x_start:x_end])
                                 else:
                                     visualized_img[y_start:y_end, x_start:x_end] = overlay
-
-                    cv2.imwrite(dst_filename, visualized_img)
+                                    
+                    
+                    
+                    # shutil.copy(src_filename, img_dir+'/'+dst_filename.split("/")[-1])
+                    visualize_raw_img = cv2.imread(src_filename)
+                    new_img = np.concatenate((visualize_raw_img,visualized_img),axis=1)
+                    cv2.imwrite(dst_filename, new_img)
+                    # cv2.imwrite(dst_filename_, visualized_gt)
+                    # cv2.imwrite(dst_filename, visualized_img)
                     #open_directory(save_dir)  # 결과 디렉토리를 엽니다.
                     return dst_filename, result_dict
                 else:
@@ -92,7 +100,7 @@ class MMSegWrapper:
 
 if __name__ == "__main__":
     # 테스트할 이미지 경로
-    img_path = '/media/spalab/sdd/kypark/PatchModel/data/hyundae/img_dir/val'
+    img_path = '/media/spalab/sdd/kypark/PatchModel/data/hyundae/img_dir/demo_1'
     
     wrapper = MMSegWrapper()
     for img_path in Path(img_path).glob('*'):

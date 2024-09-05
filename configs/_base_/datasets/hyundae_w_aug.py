@@ -43,7 +43,7 @@ train_dataloader = dict(
         type=dataset_type,
         data_root=data_root,
         data_prefix=dict(
-            img_path='img_dir/train', seg_map_path='ann_dir/train'),
+            img_path='img_dir/demo_1_5', seg_map_path='ann_dir/demo_1_5'),
         pipeline=train_pipeline))
 val_dataloader = dict(
     batch_size=1,
@@ -54,7 +54,7 @@ val_dataloader = dict(
         type=dataset_type,
         data_root=data_root,
         data_prefix=dict(
-            img_path='img_dir/val_classified/non_WD', seg_map_path='ann_dir/val_classified/non_WD'),
+            img_path='img_dir/demo_1_5', seg_map_path='ann_dir/demo_1_5'),
         pipeline=test_pipeline))
 test_dataloader = val_dataloader
 
