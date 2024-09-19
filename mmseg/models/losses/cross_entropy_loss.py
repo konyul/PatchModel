@@ -63,12 +63,31 @@ def cross_entropy(pred,
 
         else:
             # the average factor should take the class weights into account
-            label_weights = torch.stack([class_weight[cls] for cls in label
-                                         ]).to(device=class_weight.device)
+            # label_weights = torch.stack([class_weight[cls] for cls in label
+            #                              ]).to(device=class_weight.device)
+
+            # if avg_non_ignore:
+            #     label_weights[label == ignore_index] = 0
+            # avg_factor = label_weights.sum()
+            
+            label_weights = []
+
+            # 레이블 255는 무시하고, 나머지 레이블에 대해서만 가중치 계산
+            for cls in label.view(-1):
+                if cls.item() == ignore_index:
+                    label_weights.append(0)  # 무시할 클래스(255)에 대한 가중치는 0
+                else:
+                    label_weights.append(class_weight[cls].item())
+
+            label_weights = torch.tensor(label_weights).to(device=class_weight.device).view_as(label)
 
             if avg_non_ignore:
+                # 255에 해당하는 부분의 가중치를 0으로 설정하여 무시
                 label_weights[label == ignore_index] = 0
-            avg_factor = label_weights.sum()
+
+            # 평균 가중치 계산
+            avg_factor = label_weights.sum().item()
+
 
     if weight is not None:
         weight = weight.float()

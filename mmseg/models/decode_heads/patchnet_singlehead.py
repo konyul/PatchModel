@@ -28,6 +28,9 @@ class PatchnetSingleHead(patch_singlehead_BaseDecodeHead):
                  interpolate_mode='bilinear',
                  conv_kernel_size=1,
                  conv_next=False,
+                 conv_next_input_size=32,
+                 downsample_by_maxpool=False,
+                 downsample_by_interpolation=False,
                  num_layer=2,
                  **kwargs):
         super().__init__( **kwargs)
@@ -35,18 +38,48 @@ class PatchnetSingleHead(patch_singlehead_BaseDecodeHead):
         self.interpolate_mode = interpolate_mode
         self.conv_kernel_size = conv_kernel_size
         self.conv_next=conv_next
+        self.conv_next_input_size = conv_next_input_size
+        self.downsample_by_maxpool = downsample_by_maxpool
+        self.downsample_by_interpolation = downsample_by_interpolation
         self.conv_seg = None
         if self.conv_next:
-            layer = []
-            layer.append(nn.Conv2d(self.input_dim, self.input_dim//2, kernel_size=self.conv_kernel_size, padding=self.conv_kernel_size//2, stride = 2))
-            # layer.append(nn.SyncBatchNorm(self.input_dim//2))
-            layer.append(nn.ReLU(inplace=True))
-            layer.extend([Block(dim=self.input_dim//2, kernel_size=conv_kernel_size) for _ in range(num_layer)])
-            # layer.append(nn.Conv2d(self.input_dim//2, self.input_dim//2, kernel_size=1, padding=1))
-            # layer.append(nn.SyncBatchNorm(self.input_dim//2))
-            # layer.append(nn.ReLU(inplace=True))
-            layer.append(nn.Conv2d(self.input_dim//2, self.num_classes, kernel_size=1))
-            self.seg_head = nn.Sequential(*layer)
+            if self.channels>=1024:
+                layer = []
+                layer.append(nn.Conv2d(self.input_dim, self.input_dim//2, kernel_size=self.conv_kernel_size, padding=self.conv_kernel_size//2))
+                layer.append(nn.ReLU(inplace=True))
+                layer.append(nn.Conv2d(self.input_dim//2, self.input_dim//4, kernel_size=self.conv_kernel_size, padding=self.conv_kernel_size//2))
+                layer.append(nn.ReLU(inplace=True))
+                layer.extend([Block(dim=self.input_dim//4, kernel_size=conv_kernel_size) for _ in range(num_layer)])
+                layer.append(nn.Conv2d(self.input_dim//4, self.num_classes, kernel_size=1))
+                self.seg_head = nn.Sequential(*layer)
+            else:
+                if self.conv_next_input_size==32:
+                    if self.downsample_by_maxpool:
+                        layer = []
+                        layer.append(nn.MaxPool2d(kernel_size=2, stride=2))
+                        layer.append(nn.Conv2d(self.input_dim, self.input_dim//2, kernel_size=self.conv_kernel_size, padding=self.conv_kernel_size//2))
+                        layer.append(nn.ReLU(inplace=True))
+                        layer.extend([Block(dim=self.input_dim//2, kernel_size=conv_kernel_size) for _ in range(num_layer)])
+                        layer.append(nn.Conv2d(self.input_dim//2, self.num_classes, kernel_size=1))
+                        self.seg_head = nn.Sequential(*layer)
+                    else:
+                        layer = []
+                        layer.append(nn.Conv2d(self.input_dim, self.input_dim//2, kernel_size=self.conv_kernel_size, padding=self.conv_kernel_size//2, stride = 2))
+                        # layer.append(nn.SyncBatchNorm(self.input_dim//2))
+                        layer.append(nn.ReLU(inplace=True))
+                        layer.extend([Block(dim=self.input_dim//2, kernel_size=conv_kernel_size) for _ in range(num_layer)])
+                        # layer.append(nn.Conv2d(self.input_dim//2, self.input_dim//2, kernel_size=1, padding=1))
+                        # layer.append(nn.SyncBatchNorm(self.input_dim//2))
+                        # layer.append(nn.ReLU(inplace=True))
+                        layer.append(nn.Conv2d(self.input_dim//2, self.num_classes, kernel_size=1))
+                        self.seg_head = nn.Sequential(*layer)
+                elif self.conv_next_input_size==16:
+                    layer = []
+                    layer.append(nn.Conv2d(self.input_dim, self.input_dim//2, kernel_size=self.conv_kernel_size, padding=self.conv_kernel_size//2))
+                    layer.append(nn.ReLU(inplace=True))
+                    layer.extend([Block(dim=self.input_dim//2, kernel_size=conv_kernel_size) for _ in range(num_layer)])
+                    layer.append(nn.Conv2d(self.input_dim//2, self.num_classes, kernel_size=1))
+                    self.seg_head = nn.Sequential(*layer)
         elif self.conv_kernel_size == 1:
             self.seg_head = nn.Sequential(
                 nn.Conv2d(self.input_dim, self.input_dim//2, kernel_size=self.conv_kernel_size),
@@ -95,9 +128,13 @@ class PatchnetSingleHead(patch_singlehead_BaseDecodeHead):
     
     def forward(self, inputs):
         # Receive 4 stage backbone feature map: 1/4, 1/8, 1/16, 1/32
+        # import pdb;pdb.set_trace()
         x = inputs[-1]
         if self.conv_next:
-            x = F.interpolate(x, size=(32, 32),mode=self.interpolate_mode)
+            if self.downsample_by_interpolation:
+                x = F.interpolate(x, size=(32, 32),mode=self.interpolate_mode)
+            else:
+                x = x
         else:
             x = F.interpolate(x, size=(16, 16),mode=self.interpolate_mode)
         if self.seg_head is not None:
@@ -108,6 +145,7 @@ class PatchnetSingleHead(patch_singlehead_BaseDecodeHead):
                 seg_out = seg_out + seg_out_dilated + seg_out_dilatedv2
         else:
             seg_out = None
+        
         return seg_out
 
 class GRN(nn.Module):

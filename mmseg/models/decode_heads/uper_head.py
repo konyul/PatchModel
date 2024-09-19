@@ -7,10 +7,10 @@ from mmseg.registry import MODELS
 from ..utils import resize
 from .decode_head import BaseDecodeHead
 from .psp_head import PPM
-
+from mmseg.models.decode_heads.patch_decode_head import patch_BaseDecodeHead
 
 @MODELS.register_module()
-class UPerHead(BaseDecodeHead):
+class UPerHead(patch_BaseDecodeHead):
     """Unified Perceptual Parsing for Scene Understanding.
 
     This head is the implementation of `UPerNet
@@ -136,4 +136,5 @@ class UPerHead(BaseDecodeHead):
         """Forward function."""
         output = self._forward_feature(inputs)
         output = self.cls_seg(output)
+        import pdb;pdb.set_trace()
         return output

@@ -72,7 +72,6 @@ class PatchnetHead(patch_BaseDecodeHead):
     
     def forward(self, inputs):
         # Receive 4 stage backbone feature map: 1/4, 1/8, 1/16, 1/32
-         
         x = inputs[-1]
         x = F.interpolate(x, size=(16, 16),mode=self.interpolate_mode)
         # output = self._forward_feature(inputs)

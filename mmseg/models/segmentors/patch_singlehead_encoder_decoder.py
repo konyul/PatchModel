@@ -13,6 +13,7 @@ from .base import BaseSegmentor
 from mmengine.structures import PixelData
 from mmseg.structures import SegDataSample
 from ..utils import resize
+import torchvision.transforms as transforms
 
 
 @MODELS.register_module()
@@ -84,6 +85,8 @@ class Patch_singlehead_EncoderDecoder(BaseSegmentor):
                  init_cfg: OptMultiConfig = None,
                  corruption_threshold=0.3,
                  time_check=False,
+                 print_end=', ',
+                 model_time_check=False,
                  ):
         super().__init__(
             data_preprocessor=data_preprocessor, init_cfg=init_cfg)
@@ -99,9 +102,18 @@ class Patch_singlehead_EncoderDecoder(BaseSegmentor):
         self.corruption_threshold=corruption_threshold
         self.train_cfg = train_cfg
         self.test_cfg = test_cfg
-
+        
         self.time_check = time_check
+        self.print_end = print_end
         if self.time_check:
+            self.time_dict = dict()
+            self.time_dict['backbone'] = []
+            self.time_dict['head'] = []
+            self.start_event = torch.cuda.Event(enable_timing=True)
+            self.end_event = torch.cuda.Event(enable_timing=True)
+
+        self.model_time_check = model_time_check
+        if self.model_time_check:
             self.start_event = torch.cuda.Event(enable_timing=True)
             self.end_event = torch.cuda.Event(enable_timing=True)
             self.time_list = []
@@ -128,7 +140,6 @@ class Patch_singlehead_EncoderDecoder(BaseSegmentor):
     def extract_feat(self, inputs: Tensor) -> List[Tensor]:
         """Extract features from images."""
         x = self.backbone(inputs)
-        
         if self.with_neck:
             x = self.neck(x)
         return x
@@ -137,10 +148,26 @@ class Patch_singlehead_EncoderDecoder(BaseSegmentor):
                       batch_img_metas: List[dict]) -> Tensor:
         """Encode images with backbone and decode into a semantic segmentation
         map of the same size as input."""
+        if self.time_check:
+            self.start_event.record()
         x = self.extract_feat(inputs)
+        if self.time_check:
+            self.end_event.record() 
+            torch.cuda.synchronize()  
+            cur_iter_time = self.start_event.elapsed_time(self.end_event)
+            print('backbone', round(cur_iter_time, 3), end=self.print_end)
+            self.time_dict['backbone'].append(cur_iter_time)
+            self.start_event.record()
         seg_out = self.decode_head.predict(x, batch_img_metas,
                                               self.test_cfg)
         seg_out = seg_out.argmax(dim=1, keepdim=True)
+        if self.time_check:
+            self.end_event.record() 
+            torch.cuda.synchronize()  
+            cur_iter_time = self.start_event.elapsed_time(self.end_event)
+            print('head', round(cur_iter_time, 3), end=self.print_end)
+            print()
+            self.time_dict['head'].append(cur_iter_time)
         return seg_out
 
     def _decode_head_forward_train(self, inputs: List[Tensor],
@@ -397,15 +424,17 @@ class Patch_singlehead_EncoderDecoder(BaseSegmentor):
             Tensor: The segmentation results, seg_logits from model of each
                 input image.
         """
-        if self.time_check:
+        if self.model_time_check:
             self.start_event.record()
         seg_logits = self.encode_decode(inputs, batch_img_metas)
-        if self.time_check:
+        if self.model_time_check:
             self.end_event.record() 
             torch.cuda.synchronize()  
             cur_iter_time = self.start_event.elapsed_time(self.end_event)
-            print(cur_iter_time)
-
+            # print(cur_iter_time)
+            self.time_list.append(cur_iter_time)
+            avg_time = sum(self.time_list[10:]) / len(self.time_list)
+            print(f"Average Time: {avg_time} ms")
         return seg_logits
 
     def inference(self, inputs: Tensor, batch_img_metas: List[dict]) -> Tensor:

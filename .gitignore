@@ -113,6 +113,7 @@ data
 *.pkl
 *.pkl.json
 *.log.json
+work_dir/
 work_dirs/
 mmseg/.mim
 
@@ -124,3 +125,11 @@ work_dir
 *.txt
 
 .vis/
+results*/
+train*.sh
+test*.sh
+
+work_dir
+*.sh
+core
+pretrain

@@ -50,7 +50,8 @@ class OhemCrossEntropy(nn.Module):
         self.class_weight = class_weight
 
     def forward(self, score: Tensor, target: Tensor) -> Tensor:
-        """Forward function.
+        """
+        Forward function.
         Args:
             score (Tensor): Predictions of the segmentation head.
             target (Tensor): Ground truth of the image.

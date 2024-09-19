@@ -127,7 +127,9 @@ def stack_batch(inputs: List[torch.Tensor],
                     pad_shape=pad_img.shape[-2:]))
     # same image size of batch
     # target_size = (1536, 1920)  # 가장 큰 이미지의 크기
-    target_size = (1080, 1920)  # 가장 큰 이미지의 크기
+    # target_size = (1080, 1920)  # 가장 큰 이미지의 크기
+    # target_size = (1024, 1024)  # 가장 큰 이미지의 크기
+    target_size = (512, 512)  # 가장 큰 이미지의 크기
 
     # (2160, 3940) / (1536, 1920)
     # breakpoint()

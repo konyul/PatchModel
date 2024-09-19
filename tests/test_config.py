@@ -102,7 +102,6 @@ def test_config_data_pipeline():
 
         train_pipeline = Compose(config_mod.train_pipeline)
         test_pipeline = Compose(config_mod.test_pipeline)
-
         img = np.random.randint(0, 255, size=(1024, 2048, 3), dtype=np.uint8)
         if to_float32:
             img = img.astype(np.float32)

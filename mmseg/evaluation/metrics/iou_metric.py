@@ -142,7 +142,6 @@ class IoUMetric(BaseMetric):
     @staticmethod
     def intersect_and_union(pred_label: torch.tensor, label: torch.tensor,
                             num_classes: int, ignore_index: int):
-
         mask = (label != ignore_index)
         pred_label = pred_label[mask]
         label = label[mask]
