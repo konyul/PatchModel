@@ -117,7 +117,9 @@ class Patch_singlehead_EncoderDecoder(BaseSegmentor):
             self.start_event = torch.cuda.Event(enable_timing=True)
             self.end_event = torch.cuda.Event(enable_timing=True)
             self.time_list = []
-
+            
+        if self.with_neck:
+            self.downsample_for_neck = Downsample128to16(in_chans=512)
         assert self.with_decode_head
 
     def _init_decode_head(self, decode_head: ConfigType) -> None:
@@ -140,8 +142,12 @@ class Patch_singlehead_EncoderDecoder(BaseSegmentor):
     def extract_feat(self, inputs: Tensor) -> List[Tensor]:
         """Extract features from images."""
         x = self.backbone(inputs)
+        # breakpoint()
+        result_list = []
         if self.with_neck:
             x = self.neck(x)
+            result_list.append(self.downsample_for_neck(x[0]))
+            return result_list
         return x
 
     def encode_decode(self, inputs: Tensor,
@@ -485,3 +491,56 @@ class Patch_singlehead_EncoderDecoder(BaseSegmentor):
         # unravel batch dim
         seg_pred = list(seg_pred)
         return seg_pred
+
+class LayerNorm(nn.Module):
+    r""" LayerNorm that supports two data formats: channels_last (default) or channels_first. 
+    The ordering of the dimensions in the inputs. channels_last corresponds to inputs with 
+    shape (batch_size, height, width, channels) while channels_first corresponds to inputs 
+    with shape (batch_size, channels, height, width).
+    """
+    def __init__(self, normalized_shape, eps=1e-6, data_format="channels_last"):
+        super().__init__()
+        self.weight = nn.Parameter(torch.ones(normalized_shape))
+        self.bias = nn.Parameter(torch.zeros(normalized_shape))
+        self.eps = eps
+        self.data_format = data_format
+        if self.data_format not in ["channels_last", "channels_first"]:
+            raise NotImplementedError 
+        self.normalized_shape = (normalized_shape, )
+    
+    def forward(self, x):
+        if self.data_format == "channels_last":
+            return F.layer_norm(x, self.normalized_shape, self.weight, self.bias, self.eps)
+        elif self.data_format == "channels_first":
+            u = x.mean(1, keepdim=True)
+            s = (x - u).pow(2).mean(1, keepdim=True)
+            x = (x - u) / torch.sqrt(s + self.eps)
+            x = self.weight[:, None, None] * x + self.bias[:, None, None]
+            return x
+
+class Downsample128to16(nn.Module):
+    def __init__(self, in_chans, dims=[256, 256, 512]):
+        super().__init__()
+        self.downsample_layers = nn.ModuleList()
+
+        stem = nn.Sequential(
+            LayerNorm(in_chans, eps=1e-6, data_format="channels_first"),
+            nn.Conv2d(in_chans, dims[0], kernel_size=2, stride=2)
+        )
+        self.downsample_layers.append(stem)
+
+        downsample_layer_1 = nn.Sequential(
+            LayerNorm(dims[0], eps=1e-6, data_format="channels_first"),
+            nn.Conv2d(dims[0], dims[1], kernel_size=2, stride=2)
+        )
+        self.downsample_layers.append(downsample_layer_1)
+        downsample_layer_2 = nn.Sequential(
+            LayerNorm(dims[1], eps=1e-6, data_format="channels_first"),
+            nn.Conv2d(dims[1], dims[2], kernel_size=2, stride=2)
+        )
+        self.downsample_layers.append(downsample_layer_2)
+
+    def forward(self, x):
+        for layer in self.downsample_layers:
+            x = layer(x)
+        return x

@@ -1009,7 +1009,161 @@ class RandomFlip(MMCV_RandomFlip):
             swapped after horizontal flipping. For example, ``[(1, 5)]``,
             where 1/5 is the label of the left/right arm. Defaults to None.
     """
+    
+    def _flip_bbox(self, bboxes: np.ndarray, img_shape: Tuple[int, int],
+                   direction: str) -> np.ndarray:
+        """Flip bboxes horizontally.
 
+        Args:
+            bboxes (numpy.ndarray): Bounding boxes, shape (..., 4*k)
+            img_shape (tuple[int]): Image shape (height, width)
+            direction (str): Flip direction. Options are 'horizontal',
+                'vertical', and 'diagonal'.
+
+        Returns:
+            numpy.ndarray: Flipped bounding boxes.
+        """
+        assert bboxes.shape[-1] % 4 == 0
+        flipped = bboxes.copy()
+        h, w = img_shape
+        if direction == 'horizontal':
+            flipped[..., 0::4] = w - bboxes[..., 2::4]
+            flipped[..., 2::4] = w - bboxes[..., 0::4]
+        elif direction == 'vertical':
+            flipped[..., 1::4] = h - bboxes[..., 3::4]
+            flipped[..., 3::4] = h - bboxes[..., 1::4]
+        elif direction == 'diagonal':
+            flipped[..., 0::4] = w - bboxes[..., 2::4]
+            flipped[..., 1::4] = h - bboxes[..., 3::4]
+            flipped[..., 2::4] = w - bboxes[..., 0::4]
+            flipped[..., 3::4] = h - bboxes[..., 1::4]
+        else:
+            raise ValueError(
+                f"Flipping direction must be 'horizontal', 'vertical', \
+                  or 'diagonal', but got '{direction}'")
+        return flipped
+
+    def _flip_keypoints(
+        self,
+        keypoints: np.ndarray,
+        img_shape: Tuple[int, int],
+        direction: str,
+    ) -> np.ndarray:
+        """Flip keypoints horizontally, vertically or diagonally.
+
+        Args:
+            keypoints (numpy.ndarray): Keypoints, shape (..., 2)
+            img_shape (tuple[int]): Image shape (height, width)
+            direction (str): Flip direction. Options are 'horizontal',
+                'vertical', and 'diagonal'.
+
+        Returns:
+            numpy.ndarray: Flipped keypoints.
+        """
+
+        meta_info = keypoints[..., 2:]
+        keypoints = keypoints[..., :2]
+        flipped = keypoints.copy()
+        h, w = img_shape
+        if direction == 'horizontal':
+            flipped[..., 0::2] = w - keypoints[..., 0::2]
+        elif direction == 'vertical':
+            flipped[..., 1::2] = h - keypoints[..., 1::2]
+        elif direction == 'diagonal':
+            flipped[..., 0::2] = w - keypoints[..., 0::2]
+            flipped[..., 1::2] = h - keypoints[..., 1::2]
+        else:
+            raise ValueError(
+                f"Flipping direction must be 'horizontal', 'vertical', \
+                  or 'diagonal', but got '{direction}'")
+        flipped = np.concatenate([flipped, meta_info], axis=-1)
+        return flipped
+
+    def _flip_seg_map(self, seg_map: dict, direction: str) -> np.ndarray:
+        """Flip segmentation map horizontally, vertically or diagonally.
+
+        Args:
+            seg_map (numpy.ndarray): segmentation map, shape (H, W).
+            direction (str): Flip direction. Options are 'horizontal',
+                'vertical'.
+
+        Returns:
+            numpy.ndarray: Flipped segmentation map.
+        """
+        seg_map = mmcv.imflip(seg_map, direction=direction)
+        if self.swap_seg_labels is not None:
+            # to handle datasets with left/right annotations
+            # like 'Left-arm' and 'Right-arm' in LIP dataset
+            # Modified from https://github.com/openseg-group/openseg.pytorch/blob/master/lib/datasets/tools/cv2_aug_transforms.py # noqa:E501
+            # Licensed under MIT license
+            temp = seg_map.copy()
+            assert isinstance(self.swap_seg_labels, (tuple, list))
+            for pair in self.swap_seg_labels:
+                assert isinstance(pair, (tuple, list)) and len(pair) == 2, \
+                    'swap_seg_labels must be a sequence with pair, but got ' \
+                    f'{self.swap_seg_labels}.'
+                seg_map[temp == pair[0]] = pair[1]
+                seg_map[temp == pair[1]] = pair[0]
+        return seg_map
+
+    @cache_randomness
+    def _choose_direction(self, results) -> str:
+        """Choose the flip direction according to `prob` and `direction`"""
+        if isinstance(self.direction,
+                      Sequence) and not isinstance(self.direction, str):
+            # None means non-flip
+            direction_list: list = list(self.direction) + [None]
+        elif isinstance(self.direction, str):
+            # None means non-flip
+            direction_list = [self.direction, None]
+
+        if isinstance(self.prob, list):
+            non_prob: float = 1 - sum(self.prob)
+            prob_list = self.prob + [non_prob]
+        elif isinstance(self.prob, float):
+            non_prob = 1. - self.prob
+            # exclude non-flip
+            single_ratio = self.prob / (len(direction_list) - 1)
+            prob_list = [single_ratio] * (len(direction_list) - 1) + [non_prob]
+        cur_dir = np.random.choice(direction_list, p=prob_list)
+        return cur_dir
+    
+    def _flip_on_direction(self, results: dict) -> None:
+        """Function to flip images, bounding boxes, semantic segmentation map
+        and keypoints."""
+        cur_dir = self._choose_direction(results)
+        if cur_dir is None:
+            results['flip'] = False
+            results['flip_direction'] = None
+        else:
+            results['flip'] = True
+            results['flip_direction'] = cur_dir
+            self._flip(results)
+
+    def transform(self, results: dict) -> dict:
+        """Transform function to flip images, bounding boxes, semantic
+        segmentation map and keypoints.
+
+        Args:
+            results (dict): Result dict from loading pipeline.
+
+        Returns:
+            dict: Flipped results, 'img', 'gt_bboxes', 'gt_seg_map',
+            'gt_keypoints', 'flip', and 'flip_direction' keys are
+            updated in result dict.
+        """
+        self._flip_on_direction(results)
+
+        return results
+
+
+    def __repr__(self) -> str:
+        repr_str = self.__class__.__name__
+        repr_str += f'(prob={self.prob}, '
+        repr_str += f'direction={self.direction})'
+
+        return repr_str
+    
     def _flip(self, results: dict) -> None:
         """Flip images, bounding boxes and semantic segmentation map."""
         # flip image
@@ -1027,6 +1181,7 @@ class RandomFlip(MMCV_RandomFlip):
         # flip seg map
         for key in results.get('seg_fields', []):
             if results.get(key, None) is not None:
+                #print((results['gt_seg_map']==1).sum())
                 results[key] = self._flip_seg_map(
                     results[key], direction=results['flip_direction']).copy()
                 results['swap_seg_labels'] = self.swap_seg_labels

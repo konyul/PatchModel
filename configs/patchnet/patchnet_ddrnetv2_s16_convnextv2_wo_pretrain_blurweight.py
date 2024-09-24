@@ -1,10 +1,11 @@
 _base_ = [
     '../_base_/models/patchnet_DDR.py',
-    '../_base_/datasets/hyundae_w_aug.py',
+    '../_base_/datasets/hyundae_w_aug_512.py',
     '../_base_/default_runtime.py',
     '../_base_/schedules/schedule_40k.py'
 ]
 crop_size = (512, 512)
+class_weight = [0.8, 1.1, 1.0]
 data_preprocessor = dict(size=crop_size)
 model = dict(
     data_preprocessor=data_preprocessor,
@@ -12,8 +13,11 @@ model = dict(
     decode_head=dict(
         conv_next=True,
         conv_kernel_size=7,
+        conv_next_input_size=16,
+        loss_cls=dict(
+            type='CrossEntropyLoss', use_sigmoid=False, class_weight=class_weight, loss_weight=1.0)
         ),
-    test_cfg=dict(mode='whole', crop_size=(1024, 1024), stride=(768, 768))
+    test_cfg=dict(mode='whole', crop_size=(512, 512), stride=(768, 768))
     )
 
 optim_wrapper = dict(

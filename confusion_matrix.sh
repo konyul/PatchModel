@@ -1,5 +1,2 @@
-CONFIG=patchnet_r34 #config name
-CONFIG_PATH=patchnet
-
-tools/dist_test.sh configs/patchnet/patchnet_r34.py ./work_dirs/hmc_5000_pretrained_conv3x3_dilated_x2/iter_36000.pth 1 --out ./work_dirs/pred_result.pkl
-python tools/analysis_tools/confusion_matrix.py configs/patchnet/patchnet_r34.py ./work_dirs/pred_result.pkl ./work_dirs/hmc_5000_pretrained_conv3x3_dilated_x2/confusion_matrix
+tools/dist_test.sh configs/patchnet/0920/r34_1.py work_dirs/hmc_5000_2nd/0923/dilation_1357_cls_weight_4/iter_40000.pth 1 --out ./work_dirs/pred_result.pkl
+python tools/analysis_tools/confusion_matrix.py configs/patchnet/0920/r34_1.py ./work_dirs/pred_result.pkl ./work_dirs/dilation_1357_cls_weight_4/confusion_matrix

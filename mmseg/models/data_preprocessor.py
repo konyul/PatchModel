@@ -68,6 +68,7 @@ class SegDataPreProcessor(BaseDataPreprocessor):
     ):
         super().__init__()
         self.size = size
+        
         self.size_divisor = size_divisor
         self.pad_val = pad_val
         self.seg_pad_val = seg_pad_val
