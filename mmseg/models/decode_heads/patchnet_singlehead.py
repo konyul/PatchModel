@@ -32,6 +32,9 @@ class PatchnetSingleHead(patch_singlehead_BaseDecodeHead):
                  downsample_by_maxpool=False,
                  downsample_by_interpolation=False,
                  num_layer=2,
+                 crop_size=False,
+                 unet=False,
+                 attn=False,
                  **kwargs):
         super().__init__( **kwargs)
         self.input_dim = self.channels 
@@ -125,11 +128,54 @@ class PatchnetSingleHead(patch_singlehead_BaseDecodeHead):
                 nn.ReLU(inplace=True),
                 nn.Conv2d(self.input_dim//2, self.num_classes, kernel_size=1)
                 )
-    
+        self.crop_size = crop_size
+        if self.crop_size == (1024, 1024):
+            self.resize_head = nn.Sequential(
+                nn.Conv2d(self.input_dim, self.input_dim, kernel_size=3, padding=1, stride=2),
+                nn.SyncBatchNorm(self.input_dim),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(self.input_dim, self.input_dim, kernel_size=1)
+                )
+        elif self.crop_size == (2048, 2048):
+            self.resize_head = nn.Sequential(
+                nn.Conv2d(self.input_dim, self.input_dim, kernel_size=3, padding=1, stride=2),
+                nn.SyncBatchNorm(self.input_dim),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(self.input_dim, self.input_dim, kernel_size=3, padding=1, stride=2),
+                nn.SyncBatchNorm(self.input_dim),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(self.input_dim, self.input_dim, kernel_size=1)
+                )
+        self.unet=unet
+        if self.unet:
+            self.unet_head = nn.Sequential(
+                nn.Conv2d(self.input_dim, self.input_dim, kernel_size=3, padding=1, stride=2),
+                nn.SyncBatchNorm(self.input_dim),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(self.input_dim, self.input_dim, kernel_size=3, padding=1, stride=2),
+                nn.SyncBatchNorm(self.input_dim),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(self.input_dim, self.input_dim, kernel_size=3, padding=1, stride=2),
+                nn.SyncBatchNorm(self.input_dim),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(self.input_dim, self.input_dim, kernel_size=3, padding=1, stride=2),
+                nn.SyncBatchNorm(self.input_dim),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(self.input_dim, self.input_dim, kernel_size=3, padding=1, stride=2),
+                nn.SyncBatchNorm(self.input_dim),
+                nn.ReLU(inplace=True),
+                )
+        self.attn = attn
+        if self.attn:
+            self.attn = nn.MultiheadAttention(512, 8)
     def forward(self, inputs):
         # Receive 4 stage backbone feature map: 1/4, 1/8, 1/16, 1/32
         # import pdb;pdb.set_trace()
         x = inputs[-1]
+        if self.crop_size:
+            x = self.resize_head(x)
+        if self.unet:
+            x = self.unet_head(x)
         if self.conv_next:
             if self.downsample_by_interpolation:
                 x = F.interpolate(x, size=(32, 32),mode=self.interpolate_mode)
@@ -138,6 +184,13 @@ class PatchnetSingleHead(patch_singlehead_BaseDecodeHead):
         else:
             x = F.interpolate(x, size=(16, 16),mode=self.interpolate_mode)
         if self.seg_head is not None:
+            if self.attn:
+                B,C,X,Y = x.shape
+                z = x.view(B,C,-1)
+                z = z.permute(2,0,1)
+                x,_ = self.attn(z,z,z)
+                x = x.permute(1,2,0)
+                x = x.view(B,C,X,Y)
             seg_out = self.seg_head(x)
             if self.conv_kernel_size == 'multi':
                 seg_out_dilated = self.seg_head_dilated(x)

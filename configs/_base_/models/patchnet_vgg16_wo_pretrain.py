@@ -6,22 +6,26 @@ data_preprocessor = dict(
     std=[58.395, 57.12, 57.375],
     bgr_to_rgb=True,
     pad_val=0,
-    seg_pad_val=255,
-    )
+    seg_pad_val=255)
 
 model = dict(
     type='Patch_singlehead_EncoderDecoder',
     data_preprocessor=data_preprocessor,
     pretrained=None,
     backbone=dict(
-        type='DDRNet_v2',
-        in_channels=3,
-        channels=128,
-        ppm_channels=512,
-        norm_cfg=norm_cfg,
-        align_corners=False,
-        # init_cfg=dict(type='Pretrained', checkpoint=breakpoint)
-        ),
+        type='VGG',
+        depth=16,
+        with_bn=False,
+        num_stages=5,
+        dilations=(1, 1, 1, 1, 1),
+        out_indices=(1, 2, 3, 4),
+        frozen_stages=-1,
+        bn_eval=False,
+        bn_frozen=False,
+        ceil_mode=False,
+        #DY with_last_pool False -> True
+        with_last_pool=True,
+    ),
     decode_head=dict(
         type='PatchnetSingleHead',
         in_channels=[64, 128, 256, 512],

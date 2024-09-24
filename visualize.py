@@ -23,8 +23,8 @@ class MMSegWrapper:
         self.download_model()
 
     def download_model(self):
-        config_file = '/media/spalab/sdd/kypark/PatchModel/configs/patchnet/patchnet_r34.py'
-        checkpoint_file = '/media/spalab/sdd/kypark/PatchModel/work_dirs/hmc_5000_pretrained_conv3x3_dilated_x2/iter_36000.pth'
+        config_file = 'configs/patchnet/0920/r34.py'
+        checkpoint_file = 'iter_20000.pth'
         self.model = init_model(config_file, checkpoint_file, device='cuda:0')
 
     def get_result(self, src_filename):
@@ -32,7 +32,7 @@ class MMSegWrapper:
             try:
                 result_dict = {}
                 ext = Path(src_filename).suffix
-                save_dir = '/media/spalab/sdd/kypark/PatchModel/results'
+                save_dir = '/media/spalab/sdd/kypark/PatchModel/results_2nd'
                 os.makedirs(save_dir, exist_ok=True)
                 # img_dir = '/mnt/sdb/PatchModel/results_img'
                 # os.makedirs(img_dir, exist_ok=True)
@@ -40,6 +40,7 @@ class MMSegWrapper:
                 # os.makedirs(gt_dir, exist_ok=True)
                 dst_filename = os.path.join(save_dir, f'{Path(src_filename).stem}_result{ext}')
                 if ext in ['.jpg', '.png', '.jpeg']:
+                    src_filename = '/media/spalab/sdd/kypark/PatchModel/data/hyundae/img_dir/train_2nd/CMR_GT_Frame-N2207413-230206170557-ADAS_DRV3-RR_SD_CMR_LH-001-00000735.png'
                     img = mmcv.imread(src_filename)
                     original_size = img.shape[:2]
                     resized_img = cv2.resize(img, (512, 512))
@@ -110,11 +111,14 @@ class MMSegWrapper:
                     # shutil.copy(src_filename, img_dir+'/'+dst_filename.split("/")[-1])
                     dst_filename_ = dst_filename.replace("results","results_gt")
                     visualize_raw_img = cv2.imread(src_filename)
-                    new_img = np.concatenate((visualize_raw_img,visualized_gt,visualized_img),axis=1)
+                    #new_img = np.concatenate((visualize_raw_img,visualized_gt,visualized_img),axis=1)
+                    #new_img = np.concatenate((visualize_raw_img,visualized_img),axis=1)
+                    new_img = visualized_img
                     cv2.imwrite(dst_filename, new_img)
                     # cv2.imwrite(dst_filename_, visualized_gt)
                     # cv2.imwrite(dst_filename, visualized_img)
                     #open_directory(save_dir)  # 결과 디렉토리를 엽니다.
+                    import pdb;pdb.set_trace()
                     return dst_filename, result_dict
                 else:
                     raise Exception('Unsupported file type.')
@@ -125,7 +129,7 @@ class MMSegWrapper:
 
 if __name__ == "__main__":
     # 테스트할 이미지 경로
-    img_path = '/media/spalab/sdd/kypark/PatchModel/data/hyundae/img_dir/val'
+    img_path = '/media/spalab/sdd/kypark/PatchModel/data/hyundae/img_dir/val_2nd'
     
     wrapper = MMSegWrapper()
     for img_path in Path(img_path).glob('*'):
