@@ -22,9 +22,10 @@
 # CONFIG=patchnet_ddrnet_wo_pretrain
 # CONFIG=patchnet_CSPDark_convnextv2_downsample32
 # CONFIG=patchnet_ddrnet_wo_pretrain_512
-CONFIG=r34_pre_o_aug_o_dilation_o_wl_x
+CONFIG=r34_pre_x_aug_x_dilation_x_wl_x
+
 CONFIG_PATH=patchnet_midterm
-PORT=29504 CUDA_VISIBLE_DEVICES=1,2,3 CUDA_LAUNCH_BLOCKING=1 tools/dist_train.sh configs/$CONFIG_PATH/$CONFIG.py 3 --work-dir work_dir/$CONFIG_PATH/$CONFIG
+PORT=29504 CUDA_VISIBLE_DEVICES=0,1,2,3 CUDA_LAUNCH_BLOCKING=1 tools/dist_train.sh configs/$CONFIG_PATH/$CONFIG.py 4 --work-dir work_dir/$CONFIG_PATH/$CONFIG
 
 # PORT=29504 CUDA_VISIBLE_DEVICES=0 CUDA_LAUNCH_BLOCKING=1 tools/dist_train.sh configs/$CONFIG_PATH/$CONFIG.py 1 --work-dir work_dir/$CONFIG_PATH/$CONFIG
 

@@ -2,21 +2,21 @@ _base_ = [
     '../_base_/default_runtime.py',
     '../_base_/schedules/schedule_40k.py'
 ]
-crop_size = (1080, 1920)
 # dataset settings
 dataset_type = 'HyundaeDataset'
 data_root = 'data/hyundae/'
+crop_size = (512, 512)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='LoadAnnotations'),
-    dict(type='Resize', scale=crop_size, keep_ratio=True),
+    dict(type='Resize', scale=(512, 512), keep_ratio=True),
     # dict(type='RandomFlip', prob=0.5),
     # dict(type='RandomRotate', prob=0.5, degree=20),
     dict(type='PackSegInputs')
 ]
 test_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='Resize', scale=crop_size, keep_ratio=True),
+    dict(type='Resize', scale=(512, 512), keep_ratio=True),
     # add loading annotation after ``Resize`` because ground truth
     # does not need to do resize data transform
     dict(type='LoadAnnotations'),
@@ -40,7 +40,7 @@ test_pipeline = [
 # ]
 train_dataloader = dict(
     batch_size=4,
-    num_workers=0,
+    num_workers=4,
     persistent_workers=False,
     sampler=dict(type='InfiniteSampler', shuffle=True),
     dataset=dict(
@@ -68,7 +68,9 @@ test_dataloader = val_dataloader
 val_evaluator = dict(type='IoUMetric', iou_metrics=['mIoU', 'mFscore'])
 test_evaluator = val_evaluator
 
+class_weight = [0.4, 30, 1.0]
 # model settings
+crop_size = (512, 512)
 norm_cfg = dict(type='SyncBN', requires_grad=True)
 data_preprocessor = dict(
     type='SegDataPreProcessor',
@@ -80,61 +82,67 @@ data_preprocessor = dict(
     size=crop_size)
 
 model = dict(
-    type='Patch_EncoderDecoder',
+    type='Patch_singlehead_EncoderDecoder',
     data_preprocessor=data_preprocessor,
-    pretrained='torchvision://resnet18',
+    pretrained=None,
     backbone=dict(
         type='ResNet',
-        depth=18,
+        depth=34,
         num_stages=4,
         norm_cfg=norm_cfg,
         norm_eval=False,
-        style='pytorch'),
+        # dilations=(1, 3, 5, 7),
+        style='pytorch',
+        init_cfg=None
+        ),
     decode_head=dict(
-        type='PatchnetHead',
+        type='PatchnetSingleHead',
         in_channels=[64, 128, 256, 512],
         in_index=[0, 1, 2, 3],
         seg_head=True,
-        corruption_head=True,
         channels=512,
         dropout_ratio=0.1,
+        conv_next=True,
         num_classes=3,
+        conv_kernel_size=7,
+        conv_next_input_size=16,
         norm_cfg=norm_cfg,
         align_corners=False,
+        attn=True,
         input_transform='multiple_select',
-        conv_kernel_size=3,
         init_cfg=None,
         loss_cls=dict(
             type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)),
     # model training and testing settings
     train_cfg=dict(),
-    test_cfg=dict(mode='whole', crop_size=crop_size, stride=(768, 768)))
+    test_cfg=dict(mode='whole', crop_size=(512, 512), stride=(768, 768)))
+
 
 optim_wrapper = dict(
     _delete_=True,
     type='OptimWrapper',
     optimizer=dict(
-        type='AdamW', lr=0.005, betas=(0.9, 0.999), weight_decay=0.01),
+        type='AdamW', lr=0.001, betas=(0.9, 0.999), weight_decay=0.01),
     paramwise_cfg=dict(
         custom_keys={
             'pos_block': dict(decay_mult=0.),
             'norm': dict(decay_mult=0.),
-            'head': dict(lr_mult=10.)
+            'decode_head': dict(lr_mult=0.),
+            'backbone' : dict(lr_mult=0.1)
         }))
+max_iters = 40000
 param_scheduler = [
     dict(
-        type='LinearLR', start_factor=1e-6, by_epoch=False, begin=0, end=1500),
+        type='LinearLR', start_factor=1e-6, by_epoch=False, begin=0, end=500),
     dict(
         type='PolyLR',
         eta_min=0.0,
         power=1.0,
-        begin=1500,
-        end=160000,
+        begin=500,
+        end=max_iters,
         by_epoch=False,
     )
 ]
-
-max_iters=40000
 train_cfg = dict(type='IterBasedTrainLoop', max_iters=max_iters, val_interval=4000)
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')

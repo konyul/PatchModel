@@ -1,5 +1,5 @@
 # configs/patchnet_midterm/r18_pre_x_aug_x.py
-CONFIG=oldver_r18_pre_o_aug_o
+# CONFIG=oldver_r18_pre_o_aug_o
 # CONFIG=r18_pre_o_aug_o
 # CONFIG=r18_pre_o_aug_x
 # CONFIG=r18_pre_x_aug_x
@@ -8,6 +8,8 @@ CONFIG=oldver_r18_pre_o_aug_o
 # CONFIG=r34_pre_o_aug_o_dilation_x_wl_x
 # CONFIG=r34_pre_o_aug_x_dilation_x_wl_x
 # CONFIG=r34_pre_x_aug_x_dilation_x_wl_x
+
+CONFIG=r34_pre_x_aug_x_dilation_x_wl_x
 
 CONFIG_PATH=patchnet_midterm
 

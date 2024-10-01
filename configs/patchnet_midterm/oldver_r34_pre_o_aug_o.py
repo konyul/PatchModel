@@ -9,14 +9,14 @@ data_root = 'data/hyundae/'
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='LoadAnnotations'),
-    dict(type='Resize', scale=crop_size, keep_ratio=True),
-    # dict(type='RandomFlip', prob=0.5),
-    # dict(type='RandomRotate', prob=0.5, degree=20),
+    # dict(type='Resize', scale=crop_size, keep_ratio=True),
+    dict(type='RandomFlip', prob=0.5),
+    dict(type='RandomRotate', prob=0.5, degree=20),
     dict(type='PackSegInputs')
 ]
 test_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='Resize', scale=crop_size, keep_ratio=True),
+    # dict(type='Resize', scale=crop_size, keep_ratio=True),
     # add loading annotation after ``Resize`` because ground truth
     # does not need to do resize data transform
     dict(type='LoadAnnotations'),
@@ -40,7 +40,7 @@ test_pipeline = [
 # ]
 train_dataloader = dict(
     batch_size=4,
-    num_workers=0,
+    num_workers=4,
     persistent_workers=False,
     sampler=dict(type='InfiniteSampler', shuffle=True),
     dataset=dict(
@@ -82,14 +82,17 @@ data_preprocessor = dict(
 model = dict(
     type='Patch_EncoderDecoder',
     data_preprocessor=data_preprocessor,
-    pretrained='torchvision://resnet18',
+    pretrained=None,
     backbone=dict(
         type='ResNet',
-        depth=18,
+        depth=34,
         num_stages=4,
         norm_cfg=norm_cfg,
         norm_eval=False,
-        style='pytorch'),
+        # dilations=(1, 3, 5, 7),
+        style='pytorch',
+        init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet34')
+        ),
     decode_head=dict(
         type='PatchnetHead',
         in_channels=[64, 128, 256, 512],
@@ -121,6 +124,8 @@ optim_wrapper = dict(
             'norm': dict(decay_mult=0.),
             'head': dict(lr_mult=10.)
         }))
+max_iters=40000
+
 param_scheduler = [
     dict(
         type='LinearLR', start_factor=1e-6, by_epoch=False, begin=0, end=1500),
@@ -129,12 +134,11 @@ param_scheduler = [
         eta_min=0.0,
         power=1.0,
         begin=1500,
-        end=160000,
+        end=max_iters,
         by_epoch=False,
     )
 ]
 
-max_iters=40000
 train_cfg = dict(type='IterBasedTrainLoop', max_iters=max_iters, val_interval=4000)
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')
