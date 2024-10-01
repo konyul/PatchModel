@@ -96,12 +96,12 @@ def stack_batch(inputs: List[torch.Tensor],
         if data_samples is not None:
             data_sample = data_samples[i]
             pad_shape = None
-            if 'gt_sem_seg' in data_sample:
-                gt_sem_seg = data_sample.gt_sem_seg.data
-                del data_sample.gt_sem_seg.data
-                data_sample.gt_sem_seg.data = F.pad(
-                    gt_sem_seg, padding_size, value=seg_pad_val)
-                pad_shape = data_sample.gt_sem_seg.shape
+            # if 'gt_sem_seg' in data_sample:
+            #     gt_sem_seg = data_sample.gt_sem_seg.data
+            #     del data_sample.gt_sem_seg.data
+            #     data_sample.gt_sem_seg.data = F.pad(
+            #         gt_sem_seg, padding_size, value=seg_pad_val)
+            #     pad_shape = data_sample.gt_sem_seg.shape
             if 'gt_edge_map' in data_sample:
                 gt_edge_map = data_sample.gt_edge_map.data
                 del data_sample.gt_edge_map.data

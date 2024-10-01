@@ -67,7 +67,6 @@ class MMSegWrapper:
                 
                 # img = draw_grid(img)
                 overlay = img.copy()
-                breakpoint()
 
                 # Apply the segmentation map as an overlay
                 for i in range(seg_map_resized.shape[0]):

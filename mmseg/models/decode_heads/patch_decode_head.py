@@ -391,7 +391,6 @@ class patch_BaseDecodeHead(BaseModule, metaclass=ABCMeta):
         seg_pred = (results[0]*seg_pred_mask).squeeze(1)
         seg_GT = torch.where(seg_GT_mask.squeeze(1) == 0, torch.tensor(255, dtype=seg_GT.dtype, device=seg_GT.device), seg_GT)
         seg_pred = torch.where(seg_pred_mask.squeeze(1) == 0, torch.tensor(255, dtype=seg_pred.dtype, device=seg_pred.device), seg_pred)
-
         if not isinstance(self.loss_cls, nn.ModuleList):
             losses_decode = [self.loss_cls]
         else:
