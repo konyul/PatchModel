@@ -1,6 +1,6 @@
 _base_ = [
-    '../../_base_/default_runtime.py',
-    '../../_base_/schedules/schedule_40k.py'
+    '../_base_/default_runtime.py',
+    '../_base_/schedules/schedule_40k.py'
 ]
 # dataset settings
 dataset_type = 'HyundaeDataset'
@@ -69,7 +69,7 @@ test_dataloader = val_dataloader
 val_evaluator = dict(type='IoUMetric', iou_metrics=['mIoU', 'mFscore'])
 test_evaluator = val_evaluator
 
-class_weight = [0.8, 30, 1.0]
+class_weight = [0.4, 30, 1.0]
 # model settings
 crop_size = (512, 512)
 norm_cfg = dict(type='SyncBN', requires_grad=True)
@@ -92,7 +92,7 @@ model = dict(
         num_stages=4,
         norm_cfg=norm_cfg,
         norm_eval=False,
-        dilations=(1, 3, 5, 7),
+        # dilations=(1, 3, 5, 7),
         style='pytorch',
         init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet34')
         ),
@@ -109,15 +109,15 @@ model = dict(
         conv_next_input_size=16,
         norm_cfg=norm_cfg,
         align_corners=False,
-        attn=False,
+        attn=True,
         input_transform='multiple_select',
         init_cfg=None,
         loss_cls=dict(
-            type='CrossEntropyLoss', use_sigmoid=False, class_weight=class_weight, loss_weight=1.0)
-        ),
+            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)),
     # model training and testing settings
     train_cfg=dict(),
     test_cfg=dict(mode='whole', crop_size=(512, 512), stride=(768, 768)))
+
 
 optim_wrapper = dict(
     _delete_=True,

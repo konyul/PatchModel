@@ -1,6 +1,6 @@
 _base_ = [
-    '../../_base_/default_runtime.py',
-    '../../_base_/schedules/schedule_40k.py'
+    '../_base_/default_runtime.py',
+    '../_base_/schedules/schedule_40k.py'
 ]
 # dataset settings
 dataset_type = 'HyundaeDataset'
@@ -47,8 +47,7 @@ train_dataloader = dict(
         type=dataset_type,
         data_root=data_root,
         data_prefix=dict(
-            # img_path='img_dir/demo_1_5', seg_map_path='ann_dir/demo_1_5'),
-            img_path='img_dir/train_2nd', seg_map_path='ann_dir/train_2nd'),
+            img_path='img_dir/train_poc', seg_map_path='ann_dir/train_poc'),
         pipeline=train_pipeline))
 val_dataloader = dict(
     batch_size=1,
@@ -59,9 +58,7 @@ val_dataloader = dict(
         type=dataset_type,
         data_root=data_root,
         data_prefix=dict(
-            # img_path='img_dir/demo_1_5', seg_map_path='ann_dir/demo_1_5'),
-            img_path='img_dir/val_2nd/', seg_map_path='ann_dir/val_2nd/'),
-            #img_path='img_dir/val_classified/non_WD', seg_map_path='ann_dir/val_classified/non_WD'),
+            img_path='img_dir/val_poc/', seg_map_path='ann_dir/val_poc/'),
 
         pipeline=test_pipeline))
 test_dataloader = val_dataloader
@@ -69,7 +66,6 @@ test_dataloader = val_dataloader
 val_evaluator = dict(type='IoUMetric', iou_metrics=['mIoU', 'mFscore'])
 test_evaluator = val_evaluator
 
-class_weight = [0.8, 30, 1.0]
 # model settings
 crop_size = (512, 512)
 norm_cfg = dict(type='SyncBN', requires_grad=True)
@@ -83,38 +79,32 @@ data_preprocessor = dict(
     size=crop_size)
 
 model = dict(
-    type='Patch_singlehead_EncoderDecoder',
+    type='Patch_EncoderDecoder',
     data_preprocessor=data_preprocessor,
-    pretrained=None,
+    pretrained='torchvision://resnet18',
     backbone=dict(
         type='ResNet',
-        depth=34,
+        depth=18,
         num_stages=4,
         norm_cfg=norm_cfg,
         norm_eval=False,
-        dilations=(1, 3, 5, 7),
-        style='pytorch',
-        init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet34')
-        ),
+        style='pytorch'),
     decode_head=dict(
-        type='PatchnetSingleHead',
+        type='PatchnetHead',
         in_channels=[64, 128, 256, 512],
         in_index=[0, 1, 2, 3],
         seg_head=True,
+        corruption_head=True,
         channels=512,
         dropout_ratio=0.1,
-        conv_next=True,
         num_classes=3,
-        conv_kernel_size=7,
-        conv_next_input_size=16,
         norm_cfg=norm_cfg,
         align_corners=False,
-        attn=False,
         input_transform='multiple_select',
+        conv_kernel_size=3,
         init_cfg=None,
         loss_cls=dict(
-            type='CrossEntropyLoss', use_sigmoid=False, class_weight=class_weight, loss_weight=1.0)
-        ),
+            type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)),
     # model training and testing settings
     train_cfg=dict(),
     test_cfg=dict(mode='whole', crop_size=(512, 512), stride=(768, 768)))
@@ -123,27 +113,26 @@ optim_wrapper = dict(
     _delete_=True,
     type='OptimWrapper',
     optimizer=dict(
-        type='AdamW', lr=0.001, betas=(0.9, 0.999), weight_decay=0.01),
+        type='AdamW', lr=0.005, betas=(0.9, 0.999), weight_decay=0.01),
     paramwise_cfg=dict(
         custom_keys={
             'pos_block': dict(decay_mult=0.),
             'norm': dict(decay_mult=0.),
-            'decode_head': dict(lr_mult=0.),
-            'backbone' : dict(lr_mult=0.1)
+            'head': dict(lr_mult=10.)
         }))
-max_iters = 40000
 param_scheduler = [
     dict(
-        type='LinearLR', start_factor=1e-6, by_epoch=False, begin=0, end=500),
+        type='LinearLR', start_factor=1e-6, by_epoch=False, begin=0, end=1500),
     dict(
         type='PolyLR',
         eta_min=0.0,
         power=1.0,
-        begin=500,
-        end=max_iters,
+        begin=1500,
+        end=160000,
         by_epoch=False,
     )
 ]
+max_iters=40000
 train_cfg = dict(type='IterBasedTrainLoop', max_iters=max_iters, val_interval=4000)
 val_cfg = dict(type='ValLoop')
 test_cfg = dict(type='TestLoop')
