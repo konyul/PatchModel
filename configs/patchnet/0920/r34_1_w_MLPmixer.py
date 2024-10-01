@@ -22,22 +22,6 @@ test_pipeline = [
     dict(type='LoadAnnotations'),
     dict(type='PackSegInputs')
 ]
-# img_ratios = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75]
-# tta_pipeline = [
-#     dict(type='LoadImageFromFile', backend_args=None),
-#     dict(
-#         type='TestTimeAug',
-#         transforms=[
-#             [
-#                 dict(type='Resize', scale_factor=r, keep_ratio=True)
-#                 for r in img_ratios
-#             ],
-#             [
-#                 dict(type='RandomFlip', prob=0., direction='horizontal'),
-#                 dict(type='RandomFlip', prob=1., direction='horizontal')
-#             ], [dict(type='LoadAnnotations')], [dict(type='PackSegInputs')]
-#         ])
-# ]
 train_dataloader = dict(
     batch_size=4,
     num_workers=4,
@@ -47,7 +31,6 @@ train_dataloader = dict(
         type=dataset_type,
         data_root=data_root,
         data_prefix=dict(
-            # img_path='img_dir/demo_1_5', seg_map_path='ann_dir/demo_1_5'),
             img_path='img_dir/train_2nd', seg_map_path='ann_dir/train_2nd'),
         pipeline=train_pipeline))
 val_dataloader = dict(
@@ -59,18 +42,14 @@ val_dataloader = dict(
         type=dataset_type,
         data_root=data_root,
         data_prefix=dict(
-            # img_path='img_dir/demo_1_5', seg_map_path='ann_dir/demo_1_5'),
             img_path='img_dir/val_2nd/', seg_map_path='ann_dir/val_2nd/'),
-            #img_path='img_dir/val_classified/non_WD', seg_map_path='ann_dir/val_classified/non_WD'),
-
         pipeline=test_pipeline))
 test_dataloader = val_dataloader
 
 val_evaluator = dict(type='IoUMetric', iou_metrics=['mIoU', 'mFscore'])
 test_evaluator = val_evaluator
 
-class_weight = [0.8, 30, 1.0]
-# model settings
+class_weight = [0.4, 30, 1.0]
 crop_size = (512, 512)
 norm_cfg = dict(type='SyncBN', requires_grad=True)
 data_preprocessor = dict(
@@ -97,7 +76,7 @@ model = dict(
         init_cfg=dict(type='Pretrained', checkpoint='torchvision://resnet34')
         ),
     decode_head=dict(
-        type='PatchnetSingleHead',
+        type='PatchnetSingleHead_MLPmixer',
         in_channels=[64, 128, 256, 512],
         in_index=[0, 1, 2, 3],
         seg_head=True,
@@ -109,7 +88,6 @@ model = dict(
         conv_next_input_size=16,
         norm_cfg=norm_cfg,
         align_corners=False,
-        attn=False,
         input_transform='multiple_select',
         init_cfg=None,
         loss_cls=dict(
@@ -132,7 +110,7 @@ optim_wrapper = dict(
             'decode_head': dict(lr_mult=0.),
             'backbone' : dict(lr_mult=0.1)
         }))
-max_iters = 40000
+max_iters = 80000
 param_scheduler = [
     dict(
         type='LinearLR', start_factor=1e-6, by_epoch=False, begin=0, end=500),

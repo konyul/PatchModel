@@ -40,6 +40,7 @@ from .patchnet_head import PatchnetHead
 from .patch_decode_head import patch_BaseDecodeHead
 from .patchnet_singlehead import PatchnetSingleHead
 from .patch_singlehead_decode_head import patch_singlehead_BaseDecodeHead
+from .patchnet_singlehead_MLPmixer import PatchnetSingleHead_MLPmixer
 
 __all__ = [
     'FCNHead', 'PSPHead', 'ASPPHead', 'PSAHead', 'NLHead', 'GCHead', 'CCHead',
@@ -51,5 +52,5 @@ __all__ = [
     'KernelUpdateHead', 'KernelUpdator', 'MaskFormerHead', 'Mask2FormerHead',
     'LightHamHead', 'PIDHead', 'DDRHead', 'VPDDepthHead', 'SideAdapterCLIPHead',
     'PatchnetHead', 'patch_BaseDecodeHead','PatchnetSingleHead', 'patch_singlehead_BaseDecodeHead',
-    'DDRpatchHead'
+    'DDRpatchHead', 'PatchnetSingleHead_MLPmixer'
 ]

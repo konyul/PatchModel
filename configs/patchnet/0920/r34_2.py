@@ -69,7 +69,7 @@ test_dataloader = val_dataloader
 val_evaluator = dict(type='IoUMetric', iou_metrics=['mIoU', 'mFscore'])
 test_evaluator = val_evaluator
 
-class_weight = [0.4, 30, 1.0]
+class_weight = [0.4, 3, 1.0]
 # model settings
 crop_size = (512, 512)
 norm_cfg = dict(type='SyncBN', requires_grad=True)
@@ -132,7 +132,7 @@ optim_wrapper = dict(
             'decode_head': dict(lr_mult=0.),
             'backbone' : dict(lr_mult=0.1)
         }))
-max_iters = 80000
+max_iters = 40000
 param_scheduler = [
     dict(
         type='LinearLR', start_factor=1e-6, by_epoch=False, begin=0, end=500),
