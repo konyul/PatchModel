@@ -10,8 +10,8 @@ train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='LoadAnnotations'),
     dict(type='Resize', scale=crop_size, keep_ratio=True),
-    dict(type='RandomFlip', prob=0.5),
-    dict(type='RandomRotate', prob=0.5, degree=20),
+    # dict(type='RandomFlip', prob=0.5),
+    # dict(type='RandomRotate', prob=0.5, degree=20),
     dict(type='PackSegInputs')
 ]
 test_pipeline = [
@@ -82,7 +82,7 @@ data_preprocessor = dict(
 model = dict(
     type='Patch_EncoderDecoder',
     data_preprocessor=data_preprocessor,
-    pretrained='torchvision://resnet18',
+    pretrained=None,
     backbone=dict(
         type='ResNet',
         depth=18,
