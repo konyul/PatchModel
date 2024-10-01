@@ -199,7 +199,7 @@ class LoadAnnotations(MMCV_LoadAnnotations):
             # self.viz_seg(gt_semantic_seg)
             gt_semantic_seg[0][gt_semantic_seg[0] != 0] -= 1
             gt_semantic_seg = gt_semantic_seg[0] + gt_semantic_seg[1]
-            
+
         # reduce zero_label
         if self.reduce_zero_label is None:
             self.reduce_zero_label = results['reduce_zero_label']

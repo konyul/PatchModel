@@ -4,7 +4,7 @@ _base_ = [
 ]
 # dataset settings
 dataset_type = 'HyundaeDataset'
-data_root = 'data/hyundae/'
+data_root = 'data/hyundae_backup/'
 crop_size = (512, 512)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
@@ -45,7 +45,7 @@ train_dataloader = dict(
         type=dataset_type,
         data_root=data_root,
         data_prefix=dict(
-            img_path='img_dir/train_poc', seg_map_path='ann_dir/train_poc'),
+            img_path='img_dir/train', seg_map_path='ann_dir/train'),
         pipeline=train_pipeline))
 val_dataloader = dict(
     batch_size=1,
@@ -56,7 +56,7 @@ val_dataloader = dict(
         type=dataset_type,
         data_root=data_root,
         data_prefix=dict(
-            img_path='img_dir/val_poc/', seg_map_path='ann_dir/val_poc/'),
+            img_path='img_dir/val', seg_map_path='ann_dir/val'),
         pipeline=test_pipeline))
 test_dataloader = val_dataloader
 
@@ -64,7 +64,7 @@ val_evaluator = dict(type='IoUMetric', iou_metrics=['mIoU', 'mFscore'])
 test_evaluator = val_evaluator
 
 # model settings
-crop_size = (512, 512)
+crop_size = (1920, 1080)
 norm_cfg = dict(type='SyncBN', requires_grad=True)
 data_preprocessor = dict(
     type='SegDataPreProcessor',

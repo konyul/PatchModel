@@ -2,34 +2,53 @@ _base_ = [
     '../_base_/default_runtime.py',
     '../_base_/schedules/schedule_40k.py'
 ]
+crop_size = (1080, 1920)
 # dataset settings
 dataset_type = 'HyundaeDataset'
 data_root = 'data/hyundae_backup/'
-crop_size = (512, 512)
 train_pipeline = [
     dict(type='LoadImageFromFile'),
     dict(type='LoadAnnotations'),
-    dict(type='Resize', scale=(512, 512), keep_ratio=True),
+    dict(type='Resize', scale=crop_size, keep_ratio=True),
+    dict(type='RandomFlip', prob=0.5),
+    dict(type='RandomRotate', prob=0.5, degree=20),
     dict(type='PackSegInputs')
 ]
 test_pipeline = [
     dict(type='LoadImageFromFile'),
-    dict(type='Resize', scale=(512, 512), keep_ratio=True),
+    # dict(type='Resize', scale=crop_size, keep_ratio=True),
     # add loading annotation after ``Resize`` because ground truth
     # does not need to do resize data transform
     dict(type='LoadAnnotations'),
     dict(type='PackSegInputs')
 ]
+# img_ratios = [0.5, 0.75, 1.0, 1.25, 1.5, 1.75]
+# tta_pipeline = [
+#     dict(type='LoadImageFromFile', backend_args=None),
+#     dict(
+#         type='TestTimeAug',
+#         transforms=[
+#             [
+#                 dict(type='Resize', scale_factor=r, keep_ratio=True)
+#                 for r in img_ratios
+#             ],
+#             [
+#                 dict(type='RandomFlip', prob=0., direction='horizontal'),
+#                 dict(type='RandomFlip', prob=1., direction='horizontal')
+#             ], [dict(type='LoadAnnotations')], [dict(type='PackSegInputs')]
+#         ])
+# ]
 train_dataloader = dict(
     batch_size=4,
-    num_workers=4,
+    num_workers=0,
     persistent_workers=False,
     sampler=dict(type='InfiniteSampler', shuffle=True),
     dataset=dict(
         type=dataset_type,
         data_root=data_root,
         data_prefix=dict(
-            img_path='img_dir/train_poc', seg_map_path='ann_dir/train_poc'),
+            img_path='img_dir/train', seg_map_path='ann_dir/train'),
+            # img_path='img_dir/train_poc', seg_map_path='ann_dir/train_poc'),
         pipeline=train_pipeline))
 val_dataloader = dict(
     batch_size=1,
@@ -40,8 +59,8 @@ val_dataloader = dict(
         type=dataset_type,
         data_root=data_root,
         data_prefix=dict(
-            img_path='img_dir/val_poc/', seg_map_path='ann_dir/val_poc/'),
-            #img_path='img_dir/val_classified/non_WD', seg_map_path='ann_dir/val_classified/non_WD'),
+            img_path='img_dir/val', seg_map_path='ann_dir/val'),
+            # img_path='img_dir/val_poc/', seg_map_path='ann_dir/val_poc/'),
 
         pipeline=test_pipeline))
 test_dataloader = val_dataloader
@@ -50,7 +69,6 @@ val_evaluator = dict(type='IoUMetric', iou_metrics=['mIoU', 'mFscore'])
 test_evaluator = val_evaluator
 
 # model settings
-crop_size = (512, 512)
 norm_cfg = dict(type='SyncBN', requires_grad=True)
 data_preprocessor = dict(
     type='SegDataPreProcessor',
@@ -64,7 +82,7 @@ data_preprocessor = dict(
 model = dict(
     type='Patch_EncoderDecoder',
     data_preprocessor=data_preprocessor,
-    pretrained=None,
+    pretrained='torchvision://resnet18',
     backbone=dict(
         type='ResNet',
         depth=18,
@@ -90,7 +108,7 @@ model = dict(
             type='CrossEntropyLoss', use_sigmoid=False, loss_weight=1.0)),
     # model training and testing settings
     train_cfg=dict(),
-    test_cfg=dict(mode='whole', crop_size=(512, 512), stride=(768, 768)))
+    test_cfg=dict(mode='whole', crop_size=crop_size, stride=(768, 768)))
 
 optim_wrapper = dict(
     _delete_=True,
@@ -115,6 +133,7 @@ param_scheduler = [
         by_epoch=False,
     )
 ]
+
 max_iters=40000
 train_cfg = dict(type='IterBasedTrainLoop', max_iters=max_iters, val_interval=4000)
 val_cfg = dict(type='ValLoop')
